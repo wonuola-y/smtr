@@ -632,29 +632,39 @@ function Checkout({ cart, onBack, onComplete }) {
   function sendReceipt(formData, cartData, orderRef) {
     if (typeof emailjs === 'undefined') return;
     if (window.EMAILJS_PUBLIC_KEY === 'REPLACE_WITH_EMAILJS_PUBLIC_KEY') return;
-    const itemLines = cartData.items.map(item =>
-      `${item.name}${item.variant ? ' (' + item.variant + ')' : ''} × ${item.qty}  —  ₦${(item.price * item.qty).toLocaleString('en-NG', {minimumFractionDigits:2})}`
-    ).join('\n');
-    const subtotal = cartData.total.toLocaleString('en-NG', {minimumFractionDigits:2});
-    const tax      = (cartData.total * 0.08).toLocaleString('en-NG', {minimumFractionDigits:2});
-    const total    = (cartData.total * 1.08).toLocaleString('en-NG', {minimumFractionDigits:2});
+
+    // Build HTML rows so the email template can render a proper item table
+    const order_items = cartData.items.map(item => {
+      const lineTotal  = (item.price * item.qty).toLocaleString('en-NG', {minimumFractionDigits:2});
+      const variantQty = [item.variant, `Qty ${item.qty}`].filter(Boolean).join(' &middot; ');
+      return `<tr>
+        <td style="padding:14px 0;border-bottom:1px solid #f0e4dc;font-family:'Ovo',Georgia,serif;font-size:15px;color:#2a0808;line-height:1.5;">
+          ${item.name}<br>
+          <span style="font-family:'Jost',Arial,sans-serif;font-size:11px;color:#a07060;letter-spacing:0.04em;">${variantQty}</span>
+        </td>
+        <td style="padding:14px 0;border-bottom:1px solid #f0e4dc;font-family:'Playfair Display',Georgia,serif;font-size:16px;color:#2a0808;text-align:right;white-space:nowrap;vertical-align:top;">&#8358;${lineTotal}</td>
+      </tr>`;
+    }).join('');
+
+    const fmt     = n => n.toLocaleString('en-NG', {minimumFractionDigits:2});
+    const address = [formData.address, formData.city, [formData.state, formData.zip].filter(Boolean).join(' '), 'Nigeria']
+                      .filter(Boolean).join('<br>');
+
     emailjs.send(
       window.EMAILJS_SERVICE_ID,
       window.EMAILJS_TEMPLATE_ID,
       {
-        to_name:    `${formData.first} ${formData.last}`.trim() || 'Valued Customer',
-        to_email:   formData.email,
-        order_ref:  orderRef,
-        order_items: itemLines,
-        subtotal:   `₦${subtotal}`,
-        tax:        `₦${tax}`,
-        shipping:   formData.shipping || 'Standard',
-        total:      `₦${total}`,
-        address:    `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`.replace(/^,\s*|,\s*$/g,''),
-        store_name: 'Shopmorethanrubies',
-        store_email:'hello@shopmorethanrubies.com',
+        to_name:     `${formData.first} ${formData.last}`.trim() || 'Valued Customer',
+        to_email:    formData.email,
+        order_ref:   orderRef,
+        order_items,
+        subtotal:    `&#8358;${fmt(cartData.total)}`,
+        tax:         `&#8358;${fmt(cartData.total * 0.08)}`,
+        shipping:    formData.shipping || 'Fez Delivery &mdash; Free',
+        total:       `&#8358;${fmt(cartData.total * 1.08)}`,
+        address,
       }
-    ).catch(() => {}); // fire-and-forget; don't block the success screen
+    ).catch(() => {});
   }
 
   return (

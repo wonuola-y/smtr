@@ -98,7 +98,7 @@ const C = {
 };
 
 /* ── Product catalogue ── */
-const PRODUCTS = [
+const DEFAULT_PRODUCTS = [
   { id:1,  name:'Bubble Cup & Saucer',  price:42, cat:'Ceramics',    tag:'Bestseller', img:'uploads/IMG_8507_2.png', desc:'Hand-glazed pink ceramic cup and cloud-shaped bubble saucer. A sculptural set for your daily rituals.',      variants:['Blush Pink','Ivory','Sage'] },
   { id:2,  name:'Ripple Glass Tumbler', price:38, cat:'Glassware',   tag:'New',        img:'uploads/IMG_8468.png',   desc:'Wavy borosilicate glass with bamboo lid and glass straw. The rippled body catches light beautifully.',       variants:['Clear','Frosted','Smoke'] },
   { id:3,  name:'Mushroom Lamp',        price:88, cat:'Lighting',    tag:'New',        img:'uploads/IMG_8562.png',   desc:'Swirled pink glass inspired by vintage Murano. Warm amber glow for your bedside or vanity.',               variants:['Pink Swirl','Ivory','Sage'] },
@@ -108,6 +108,27 @@ const PRODUCTS = [
   { id:7,  name:'Heart Mirror',         price:45, cat:'Mirrors',     tag:'',           img:'uploads/IMG_8562.png',   desc:'White beaded heart frame mirror. A sweet statement piece for your vanity wall.',                           variants:['White','Pink'] },
   { id:8,  name:'Pink Makeup Bag',      price:35, cat:'Accessories', tag:'',           img:'uploads/IMG_7013.png',   desc:'Saffiano PU leather makeup bag with gold zipper pull. Roomy, structured, and impossibly chic.',             variants:['Blush Pink','Ivory'] },
 ];
+
+const SHOP_CATS = ['All','Ceramics','Glassware','Lighting','Vases','Travel','Mirrors','Accessories','Home Decor','Purses','Self Care'];
+
+function loadProducts() {
+  try {
+    const s = localStorage.getItem('smtr_products');
+    const p = s ? JSON.parse(s) : null;
+    if (p && p.length > 0) return p;
+  } catch {}
+  return DEFAULT_PRODUCTS;
+}
+
+const RECENT_KEY = 'smtr_recent_purchases';
+function getRecentPurchases() { try { return JSON.parse(localStorage.getItem(RECENT_KEY))||[]; } catch { return []; } }
+function saveRecentPurchase(items) {
+  try {
+    const existing = getRecentPurchases();
+    const entry = { items: items.map(i=>({ id:i.id, name:i.name, img:i.img, price:i.price, variant:i.variant })), date: new Date().toISOString() };
+    localStorage.setItem(RECENT_KEY, JSON.stringify([entry, ...existing].slice(0,3)));
+  } catch {}
+}
 
 /* ── Persistent ratings ── */
 const RATINGS_KEY = 'smtr_ratings';
@@ -331,7 +352,7 @@ function PromoBanner() {
   if (!visible) return null;
   return (
     <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'10px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
-      <span>Free shipping on orders over ₦75,000 · Delivered by Fez</span>
+      <span>Cozy corners, fast deliveries — free shipping on orders over ₦75,000</span>
       <button onClick={()=>setVisible(false)} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
     </div>
   );
@@ -369,7 +390,7 @@ function Hero({ setPage }) {
         </div>
         {/* Trust badges */}
         <div style={{ display:'flex',gap:20,flexWrap:'wrap',opacity:visible?1:0,transition:'opacity 0.6s 1.2s ease',marginTop:4 }}>
-          {['Quality Tested','Trusted by many shoppers','Fez Delivery'].map(t=>(
+          {['Cozy Corners','Fast Deliveries','Quality Products'].map(t=>(
             <span key={t} style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',color:C.mid,textTransform:'uppercase',display:'flex',alignItems:'center',gap:6 }}>
               <span style={{ width:4,height:4,borderRadius:'50%',background:C.crimson,display:'inline-block' }} />{t}
             </span>
@@ -394,11 +415,11 @@ function Hero({ setPage }) {
 }
 
 /* ── Shop Page ── */
-function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
+function Shop({ setPage, setSelectedProduct, cart, wishlist, products }) {
   const [filter, setFilter] = useState('All');
   const [addedId, setAddedId] = useState(null);
-  const cats = ['All', ...new Set(PRODUCTS.map(p=>p.cat))];
-  const filtered = filter==='All' ? PRODUCTS : PRODUCTS.filter(p=>p.cat===filter);
+  const available = products.filter(p => !p.soldOut);
+  const filtered = filter==='All' ? available : available.filter(p=>p.cat===filter);
 
   const handleQuickAdd = (e, product) => {
     e.stopPropagation();
@@ -416,12 +437,12 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
     <div style={{ paddingTop:64 }}>
       <div style={{ padding:'48px clamp(20px,5vw,56px) 32px',background:C.bg2 }}>
         <h1 style={{ fontFamily:C.serif,fontSize:'clamp(28px,4vw,48px)',fontWeight:400,fontStyle:'italic',color:C.ink }}>Shop Everything</h1>
-        <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:8,letterSpacing:'0.1em' }}>{PRODUCTS.length} products</p>
+        <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:8,letterSpacing:'0.1em' }}>{available.length} products</p>
       </div>
 
       {/* Filter bar */}
       <div style={{ padding:'20px clamp(20px,5vw,56px)',borderBottom:`1px solid ${C.rule}`,display:'flex',gap:6,overflowX:'auto',background:C.white,flexWrap:'wrap' }}>
-        {cats.map(c=>(
+        {SHOP_CATS.filter(c=>c==='All'||available.some(p=>p.cat===c)).map(c=>(
           <button key={c} onClick={()=>setFilter(c)} style={{ padding:'7px 18px',border:`1px solid ${filter===c?C.ink:C.rule}`,background:filter===c?C.ink:'transparent',color:filter===c?C.white:C.mid,fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',transition:'all 0.15s',whiteSpace:'nowrap',cursor:'pointer' }}>{c}</button>
         ))}
       </div>
@@ -461,8 +482,70 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
   );
 }
 
+/* ── Featured strip (home page) ── */
+function FeaturedSection({ products, setPage, setSelectedProduct }) {
+  const featured = products.filter(p => p.featured && !p.soldOut);
+  if (featured.length === 0) return null;
+  return (
+    <section style={{ padding:'56px clamp(20px,5vw,56px)',background:C.bg }}>
+      <div style={{ display:'flex',alignItems:'baseline',gap:16,marginBottom:32 }}>
+        <h2 style={{ fontFamily:C.serif,fontSize:'clamp(22px,3vw,34px)',fontWeight:400,fontStyle:'italic',color:C.ink }}>Featured</h2>
+        <div style={{ flex:1,height:1,background:C.rule }} />
+      </div>
+      <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:20 }} className="mobile-grid-2">
+        {featured.map(p=>(
+          <div key={p.id} className="product-card" onClick={()=>{ setSelectedProduct(p); setPage('product'); }} style={{ background:C.white,cursor:'pointer',position:'relative' }}>
+            <div style={{ position:'absolute',top:10,left:10,zIndex:1,padding:'4px 10px',background:C.crimson,fontFamily:C.sans,fontSize:8,letterSpacing:'0.18em',color:'white',textTransform:'uppercase' }}>Featured</div>
+            <div className="card-img" style={{ height:220,overflow:'hidden',background:C.bg2 }}>
+              <img src={p.img} alt={p.name} loading="lazy" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',display:'block' }} />
+            </div>
+            <div style={{ padding:'14px 16px 18px' }}>
+              <p style={{ fontFamily:C.body,fontSize:16,color:C.ink }}>{p.name}</p>
+              <p style={{ fontFamily:C.sans,fontSize:12,color:C.mid,marginTop:6 }}>₦{p.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── Recently Purchased ── */
+function RecentlyPurchased({ setPage, setSelectedProduct, products }) {
+  const recent = getRecentPurchases();
+  if (recent.length === 0) return null;
+  const items = recent.flatMap(r=>r.items).filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i).slice(0,4);
+  if (items.length === 0) return null;
+  const allProds = products;
+  return (
+    <section style={{ padding:'56px clamp(20px,5vw,56px)',background:C.bg2 }}>
+      <div style={{ display:'flex',alignItems:'baseline',gap:16,marginBottom:32 }}>
+        <h2 style={{ fontFamily:C.serif,fontSize:'clamp(22px,3vw,34px)',fontWeight:400,fontStyle:'italic',color:C.ink }}>Recently Purchased</h2>
+        <div style={{ flex:1,height:1,background:C.rule }} />
+      </div>
+      <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:16 }} className="mobile-grid-2">
+        {items.map(item=>{
+          const full = allProds.find(p=>p.id===item.id) || item;
+          return (
+            <div key={item.id} className="product-card" onClick={()=>{ setSelectedProduct(full); setPage('product'); }} style={{ background:C.white,cursor:'pointer' }}>
+              <div className="card-img" style={{ height:180,overflow:'hidden',background:C.bg }}>
+                <img src={item.img} alt={item.name} loading="lazy" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',display:'block' }} />
+              </div>
+              <div style={{ padding:'12px 14px 16px' }}>
+                <p style={{ fontFamily:C.body,fontSize:14,color:C.ink }}>{item.name}</p>
+                {item.variant&&<p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2 }}>{item.variant}</p>}
+                <p style={{ fontFamily:C.sans,fontSize:12,color:C.mid,marginTop:4 }}>₦{item.price}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 /* ── Product Page ── */
-function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct }) {
+function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct, products }) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);
@@ -563,7 +646,7 @@ function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct }) {
       <div style={{ padding:'56px clamp(20px,5vw,56px)',background:C.bg2 }}>
         <h2 style={{ fontFamily:C.serif,fontSize:28,fontWeight:400,fontStyle:'italic',color:C.ink,marginBottom:32 }}>You may also like</h2>
         <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:16 }} className="mobile-grid-2">
-          {PRODUCTS.filter(p=>p.id!==product.id).slice(0,4).map(p=>(
+          {products.filter(p=>p.id!==product.id&&!p.soldOut).slice(0,4).map(p=>(
             <div key={p.id} className="product-card" onClick={()=>{ setSelectedProduct && setSelectedProduct(p); setPage('product'); }} style={{ background:C.white,cursor:'pointer' }}>
               <div style={{ height:160,overflow:'hidden',background:C.bg }}>
                 <img src={p.img} alt={p.name} loading="lazy" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',transition:'transform 0.4s ease' }} />
@@ -883,14 +966,27 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(PRODUCTS[0]);
+  const [products, setProducts] = useState(loadProducts);
+  const [selectedProduct, setSelectedProduct] = useState(()=>loadProducts()[0]);
   const cart = useCart();
   const wishlist = useWishlist();
+
+  /* Re-sync products when returning from admin (storage event or focus) */
+  useEffect(()=>{
+    const sync = () => setProducts(loadProducts());
+    window.addEventListener('focus', sync);
+    window.addEventListener('storage', sync);
+    return ()=>{ window.removeEventListener('focus',sync); window.removeEventListener('storage',sync); };
+  },[]);
 
   useEffect(()=>{ window.scrollTo(0,0); },[page]);
 
   const handleCheckout = () => { setCartOpen(false); setCheckout(true); };
-  const handleCheckoutComplete = () => { setCheckout(false); setPage('home'); };
+  const handleCheckoutComplete = () => {
+    saveRecentPurchase(cart.items);
+    setCheckout(false);
+    setPage('home');
+  };
 
   const navigateTo = (p) => { setPage(p); setCartOpen(false); setWishlistOpen(false); };
 
@@ -911,16 +1007,18 @@ function App() {
       <main>
         {page==='home'&&<>
           <Hero setPage={navigateTo} />
-          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} />
+          <FeaturedSection products={products} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
+          <RecentlyPurchased products={products} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} />
           <About />
           <Footer setPage={navigateTo} />
         </>}
         {page==='shop'&&<>
-          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} />
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} />
           <Footer setPage={navigateTo} />
         </>}
         {page==='product'&&<>
-          <ProductPage product={selectedProduct} cart={cart} wishlist={wishlist} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
+          <ProductPage product={selectedProduct} cart={cart} wishlist={wishlist} setPage={navigateTo} setSelectedProduct={setSelectedProduct} products={products} />
           <Footer setPage={navigateTo} />
         </>}
         {page==='about'&&<>

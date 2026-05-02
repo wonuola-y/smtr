@@ -52,7 +52,7 @@ const INITIAL_PRODUCTS = [
   { id:11, name:'Silk Hair Ties',       price:'20', category:'Accessories', tag:'',           variants:['Nude','Black','Blush'],                 desc:'Set of 8 silk-finish hair ties in neutral tones.',                   img:null },
 ];
 
-const CATEGORIES = ['All','Ceramics','Glassware','Lighting','Vases','Mirrors','Travel','Organizers','Accessories'];
+const CATEGORIES = ['All','Ceramics','Glassware','Lighting','Vases','Travel','Mirrors','Accessories','Home Decor','Purses','Self Care'];
 const TAGS = ['','New','Bestseller','Limited','Sale'];
 
 /* ── Crypto helpers ── */
@@ -494,6 +494,24 @@ function EditModal({ product, onSave, onClose }) {
           </div>
         )}
 
+        {/* Status toggles */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <label style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', border:`1px solid ${form.soldOut?'#c04040':C.rule}`, background:form.soldOut?'#fff0f0':C.white, borderRadius:2, cursor:'pointer', userSelect:'none' }}>
+            <input type="checkbox" checked={!!form.soldOut} onChange={e=>set('soldOut',e.target.checked)} style={{ accentColor:'#c04040', width:15, height:15 }} />
+            <div>
+              <p style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:form.soldOut?'#c04040':C.mid, margin:0 }}>Sold Out</p>
+              <p style={{ fontFamily:C.sans, fontSize:9, color:C.mid, margin:'2px 0 0', lineHeight:1.4 }}>Hides from store</p>
+            </div>
+          </label>
+          <label style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', border:`1px solid ${form.featured?'#d4822a':C.rule}`, background:form.featured?'#fff8f0':C.white, borderRadius:2, cursor:'pointer', userSelect:'none' }}>
+            <input type="checkbox" checked={!!form.featured} onChange={e=>set('featured',e.target.checked)} style={{ accentColor:'#d4822a', width:15, height:15 }} />
+            <div>
+              <p style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:form.featured?'#d4822a':C.mid, margin:0 }}>Featured</p>
+              <p style={{ fontFamily:C.sans, fontSize:9, color:C.mid, margin:'2px 0 0', lineHeight:1.4 }}>Shows on homepage</p>
+            </div>
+          </label>
+        </div>
+
         {/* Description */}
         <div>
           <label style={lbl}>Description</label>
@@ -519,11 +537,13 @@ function EditModal({ product, onSave, onClose }) {
 }
 
 /* ── Product card ── */
-function ProductCard({ product, onEdit, onDelete }) {
+function ProductCard({ product, onEdit, onDelete, onToggle }) {
   const [hovering, setHovering] = useState(false);
+  const soldOut  = !!product.soldOut;
+  const featured = !!product.featured;
   return (
     <div onMouseEnter={()=>setHovering(true)} onMouseLeave={()=>setHovering(false)}
-      style={{ background:C.white, border:`1px solid ${hovering?C.rule:'transparent'}`, transition:'all 0.15s', position:'relative' }}>
+      style={{ background:C.white, border:`1px solid ${soldOut?'#f0c0c0':hovering?C.rule:'transparent'}`, transition:'all 0.15s', position:'relative', opacity:soldOut?0.75:1 }}>
       <div style={{ height:200, background:C.cream, overflow:'hidden', position:'relative' }}>
         {product.img ? (
           <img src={product.img} alt={product.name} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center' }} />
@@ -532,13 +552,18 @@ function ProductCard({ product, onEdit, onDelete }) {
             <span style={{ fontFamily:C.sans, fontSize:10, color:C.mid, letterSpacing:'0.12em', textTransform:'uppercase' }}>No Image</span>
           </div>
         )}
-        {product.tag && <div style={{ position:'absolute', top:10, left:10, padding:'4px 10px', background:C.ink, fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase' }}>{product.tag}</div>}
-        <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:12, opacity:hovering?1:0, transition:'opacity 0.18s' }}>
-          <button onClick={()=>onEdit(product)} style={{ padding:'9px 22px', background:'white', border:'none', fontFamily:C.sans, fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:C.ink, cursor:'pointer' }}>Edit</button>
-          <button onClick={()=>onDelete(product.id)} style={{ padding:'9px 22px', background:'transparent', border:'1px solid rgba(255,255,255,0.5)', fontFamily:C.sans, fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'white', cursor:'pointer' }}>Remove</button>
+        {/* Badges */}
+        <div style={{ position:'absolute', top:10, left:10, display:'flex', flexDirection:'column', gap:4 }}>
+          {product.tag && <span style={{ padding:'4px 10px', background:C.ink, fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>{product.tag}</span>}
+          {soldOut   && <span style={{ padding:'4px 10px', background:'#c04040', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Sold Out</span>}
+          {featured  && <span style={{ padding:'4px 10px', background:'#d4822a', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Featured</span>}
+        </div>
+        <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, opacity:hovering?1:0, transition:'opacity 0.18s', flexWrap:'wrap', padding:'0 12px' }}>
+          <button onClick={()=>onEdit(product)} style={{ padding:'8px 16px', background:'white', border:'none', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:C.ink, cursor:'pointer' }}>Edit</button>
+          <button onClick={()=>onDelete(product.id)} style={{ padding:'8px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.5)', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:'white', cursor:'pointer' }}>Remove</button>
         </div>
       </div>
-      <div style={{ padding:'14px 16px 18px' }}>
+      <div style={{ padding:'12px 16px 14px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
           <p style={{ fontFamily:"'Ovo', Georgia, serif", fontSize:15, color:'#2a0808' }}>{product.name}</p>
           <p style={{ fontFamily:C.serif, fontSize:14, color:C.ink }}>₦{product.price}</p>
@@ -552,7 +577,17 @@ function ProductCard({ product, onEdit, onDelete }) {
             {product.variants.length>3&&<span style={{ fontFamily:C.sans, fontSize:9, color:C.mid }}>+{product.variants.length-3}</span>}
           </div>
         )}
-        <p style={{ fontFamily:C.sans, fontSize:11, color:'#8a6050', marginTop:6, lineHeight:1.6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{product.desc}</p>
+        {/* Quick toggles */}
+        <div style={{ display:'flex', gap:6, marginTop:10 }}>
+          <button onClick={()=>onToggle(product.id,'soldOut',!soldOut)}
+            style={{ flex:1, padding:'6px 4px', border:`1px solid ${soldOut?'#c04040':C.rule}`, background:soldOut?'#fff0f0':'transparent', fontFamily:C.sans, fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:soldOut?'#c04040':C.mid, cursor:'pointer', transition:'all 0.15s' }}>
+            {soldOut ? '✓ Sold Out' : 'Mark Sold Out'}
+          </button>
+          <button onClick={()=>onToggle(product.id,'featured',!featured)}
+            style={{ flex:1, padding:'6px 4px', border:`1px solid ${featured?'#d4822a':C.rule}`, background:featured?'#fff8f0':'transparent', fontFamily:C.sans, fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:featured?'#d4822a':C.mid, cursor:'pointer', transition:'all 0.15s' }}>
+            {featured ? '★ Featured' : '☆ Feature'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -585,6 +620,7 @@ function ProductManager({ showToast }) {
   };
 
   const handleDelete = id => { save(products.filter(p=>p.id!==id)); showToast('Product removed'); };
+  const handleToggle = (id, field, value) => { save(products.map(p=>p.id===id?{...p,[field]:value}:p)); showToast(value?(field==='soldOut'?'Marked sold out':'Marked featured'):(field==='soldOut'?'Back in stock':'Removed from featured')); };
 
   const filtered = products.filter(p => {
     const matchCat  = filter==='All' || p.category===filter;
@@ -598,8 +634,8 @@ function ProductManager({ showToast }) {
       <div style={{ background:C.cream, borderBottom:`1px solid ${C.rule}`, padding:'0 40px', display:'flex', gap:0, overflowX:'auto' }}>
         {[
           { label:'Total Products', value:products.length },
-          { label:'With Images',    value:products.filter(p=>p.img).length },
-          { label:'Missing Images', value:products.filter(p=>!p.img).length },
+          { label:'Sold Out',       value:products.filter(p=>p.soldOut).length },
+          { label:'Featured',       value:products.filter(p=>p.featured).length },
           { label:'Categories',     value:[...new Set(products.map(p=>p.category))].length },
         ].map((s,i)=>(
           <div key={i} style={{ padding:'14px 32px 14px 0', marginRight:32, borderRight:i<3?`1px solid ${C.rule}`:'none', flexShrink:0 }}>
@@ -637,7 +673,7 @@ function ProductManager({ showToast }) {
         ) : (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:20 }}>
             {filtered.map(p=>(
-              <ProductCard key={p.id} product={p} onEdit={setEditing} onDelete={handleDelete} />
+              <ProductCard key={p.id} product={p} onEdit={setEditing} onDelete={handleDelete} onToggle={handleToggle} />
             ))}
             <div onClick={()=>setEditing({id:'new',name:'',price:'',category:'Ceramics',tag:'',variants:[],desc:'',img:null})}
               style={{ border:`2px dashed ${C.rule}`, background:'transparent', minHeight:280, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, cursor:'pointer', transition:'border-color 0.15s' }}

@@ -194,7 +194,7 @@ function CartDrawer({ open, onClose, cart, onCheckout }) {
                 </div>
               </div>
               <div style={{ textAlign:'right',display:'flex',flexDirection:'column',gap:8,alignItems:'flex-end' }}>
-                <p style={{ fontFamily:C.serif,fontSize:15,color:C.ink }}>${(item.price*item.qty).toFixed(0)}</p>
+                <p style={{ fontFamily:C.serif,fontSize:15,color:C.ink }}>₦{(item.price*item.qty).toFixed(0)}</p>
                 <button onClick={()=>cart.remove(item.id,item.variant)} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:9,color:C.mid,letterSpacing:'0.1em',textTransform:'uppercase' }}>Remove</button>
               </div>
             </div>
@@ -204,9 +204,9 @@ function CartDrawer({ open, onClose, cart, onCheckout }) {
           <div style={{ padding:'24px 28px',borderTop:`1px solid ${C.rule}`,display:'flex',flexDirection:'column',gap:12 }}>
             <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline' }}>
               <span style={{ fontFamily:C.sans,fontSize:12,color:C.mid }}>Subtotal</span>
-              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>${cart.total.toFixed(2)}</span>
+              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>₦{cart.total.toFixed(2)}</span>
             </div>
-            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,textAlign:'center' }}>Free shipping on orders over $75</p>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,textAlign:'center' }}>Free shipping on orders over ₦75,000</p>
             <button className="btn-primary" onClick={onCheckout} style={{ padding:'15px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.22em',textTransform:'uppercase' }}>
               Checkout →
             </button>
@@ -243,7 +243,7 @@ function WishlistDrawer({ open, onClose, wishlist, cart, setPage, setSelectedPro
               </div>
               <div>
                 <p style={{ fontFamily:C.body,fontSize:14,color:C.ink,cursor:'pointer' }} onClick={()=>{ setSelectedProduct(item); setPage('product'); onClose(); }}>{item.name}</p>
-                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:3 }}>${item.price}</p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:3 }}>₦{item.price}</p>
                 <button
                   onClick={()=>{ cart.add(item,item.variants[0]); wishlist.toggle(item); }}
                   style={{ marginTop:8,padding:'7px 16px',background:C.crimson,color:'white',border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',transition:'background 0.15s',cursor:'pointer' }}
@@ -331,7 +331,7 @@ function PromoBanner() {
   if (!visible) return null;
   return (
     <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'10px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
-      <span>Free shipping on orders over $75 · Delivered by Fez</span>
+      <span>Free shipping on orders over ₦75,000 · Delivered by Fez</span>
       <button onClick={()=>setVisible(false)} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
     </div>
   );
@@ -451,7 +451,7 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
               <div style={{ padding:'14px 16px 18px' }}>
                 <p style={{ fontFamily:C.body,fontSize:16,color:C.ink }}>{product.name}</p>
                 <Stars id={`shop-${product.id}`} initial={[5,4,5,5,4,5,5,4][i]||4} size={12} />
-                <p style={{ fontFamily:C.sans,fontSize:12,color:C.mid,marginTop:6 }}>${product.price}</p>
+                <p style={{ fontFamily:C.sans,fontSize:12,color:C.mid,marginTop:6 }}>₦{product.price}</p>
               </div>
             </div>
           ))}
@@ -516,8 +516,8 @@ function ProductPage({ product, cart, wishlist, setPage }) {
           <Stars id={`product-${product.id}`} initial={5} size={16} color={C.red} />
 
           <div style={{ display:'flex',alignItems:'baseline',gap:16 }}>
-            <p style={{ fontFamily:C.serif,fontSize:28,color:C.ink }}>${product.price}</p>
-            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid }}>Free shipping over $75</p>
+            <p style={{ fontFamily:C.serif,fontSize:28,color:C.ink }}>₦{product.price}</p>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid }}>Free shipping over ₦75,000</p>
           </div>
 
           <div style={{ height:1,background:C.rule }} />
@@ -549,7 +549,7 @@ function ProductPage({ product, cart, wishlist, setPage }) {
 
           {/* Details */}
           <div style={{ marginTop:4,display:'flex',flexDirection:'column',gap:6 }}>
-            {['Handmade in small batches','Ships in 2–4 business days via Fez','30-day hassle-free returns','Free shipping on orders over $75'].map(t=>(
+            {['Handmade in small batches','Ships in 2–4 business days via Fez','30-day hassle-free returns','Free shipping on orders over ₦75,000'].map(t=>(
               <div key={t} style={{ display:'flex',gap:10,alignItems:'center' }}>
                 <div style={{ width:4,height:4,borderRadius:'50%',background:C.mid,flexShrink:0 }} />
                 <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>{t}</p>
@@ -570,7 +570,7 @@ function ProductPage({ product, cart, wishlist, setPage }) {
               </div>
               <div style={{ padding:'12px 14px 16px' }}>
                 <p style={{ fontFamily:C.body,fontSize:14,color:C.ink }}>{p.name}</p>
-                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:4 }}>${p.price}</p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:4 }}>₦{p.price}</p>
               </div>
             </div>
           ))}
@@ -708,7 +708,7 @@ function Checkout({ cart, onBack, onComplete }) {
                 </select>
               </div>
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
-                {[['Fez Delivery — Free','3–5 business days'],['Fez Express — $12','1–2 business days']].map(([label,sub],i)=>(
+                {[['Fez Delivery — Free','3–5 business days'],['Fez Express — ₦12,000','1–2 business days']].map(([label,sub],i)=>(
                   <div key={i} onClick={()=>set('shipping',label)} style={{ padding:'14px 16px',border:`1px solid ${form.shipping===label||(!form.shipping&&i===0)?C.ink:C.rule}`,cursor:'pointer',transition:'border-color 0.15s',background:form.shipping===label||(!form.shipping&&i===0)?'#fff8f6':'transparent' }}>
                     <p style={{ fontFamily:C.sans,fontSize:11,color:C.ink }}>{label}</p>
                     <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2 }}>{sub}</p>
@@ -735,7 +735,7 @@ function Checkout({ cart, onBack, onComplete }) {
                   Pay securely with your debit card, credit card, bank transfer, or USSD.
                 </p>
                 <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>
-                  Amount: <strong style={{ color:C.ink,fontFamily:C.serif,fontSize:16 }}>${(cart.total*1.08).toFixed(2)}</strong>
+                  Amount: <strong style={{ color:C.ink,fontFamily:C.serif,fontSize:16 }}>₦{(cart.total*1.08).toFixed(2)}</strong>
                 </p>
               </div>
               <div style={{ display:'flex',gap:12,marginTop:8 }}>
@@ -792,12 +792,12 @@ function Checkout({ cart, onBack, onComplete }) {
                   <p style={{ fontFamily:C.body,fontSize:13,color:C.ink }}>{item.name}</p>
                   <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2 }}>{item.variant}</p>
                 </div>
-                <p style={{ fontFamily:C.serif,fontSize:14,color:C.ink }}>${(item.price*item.qty).toFixed(0)}</p>
+                <p style={{ fontFamily:C.serif,fontSize:14,color:C.ink }}>₦{(item.price*item.qty).toFixed(0)}</p>
               </div>
             ))}
           </div>
           <div style={{ marginTop:20,display:'flex',flexDirection:'column',gap:10 }}>
-            {[['Subtotal',`$${cart.total.toFixed(2)}`],['Shipping','Free'],['Tax',`$${(cart.total*0.08).toFixed(2)}`]].map(([k,v])=>(
+            {[['Subtotal',`₦${cart.total.toFixed(2)}`],['Shipping','Free'],['Tax',`₦${(cart.total*0.08).toFixed(2)}`]].map(([k,v])=>(
               <div key={k} style={{ display:'flex',justifyContent:'space-between' }}>
                 <span style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>{k}</span>
                 <span style={{ fontFamily:C.serif,fontSize:13,color:C.ink }}>{v}</span>
@@ -806,7 +806,7 @@ function Checkout({ cart, onBack, onComplete }) {
             <div style={{ height:1,background:C.rule,margin:'4px 0' }} />
             <div style={{ display:'flex',justifyContent:'space-between' }}>
               <span style={{ fontFamily:C.sans,fontSize:12,fontWeight:500,color:C.ink }}>Total</span>
-              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>${(cart.total*1.08).toFixed(2)}</span>
+              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>₦{(cart.total*1.08).toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shopmorethanrubies — Home & Lifestyle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Ovo&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Jost', sans-serif; background: #fdf8f5; color: #2a0808; overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: 'Jost', sans-serif; }
+input, textarea, select { font-family: 'Jost', sans-serif; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fade-up { animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1) both; }
+.fade-in { animation: fadeIn 0.5s ease both; }
+
+.product-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(42,8,8,0.1); }
+.product-card:hover .card-overlay { opacity: 1 !important; }
+.product-card:hover .card-img img { transform: scale(1.04); }
+.card-img img { transition: transform 0.4s ease; }
+.card-overlay { transition: opacity 0.2s ease; }
+
+.nav-link { position: relative; }
+.nav-link::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:1px; background:#e9201f; transform:scaleX(0); transform-origin:left; transition:transform 0.2s ease; }
+.nav-link:hover::after { transform:scaleX(1); }
+
+.btn-primary { transition: background 0.18s ease, color 0.18s ease; }
+.btn-primary:hover { background: #a81111 !important; }
+.btn-outline { transition: background 0.18s ease, color 0.18s ease; }
+.btn-outline:hover { background: #2a0808 !important; color: #fdf8f5 !important; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #ede1d8; }
+::-webkit-scrollbar-thumb { background: #c04040; border-radius: 3px; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: flex !important; }
+  .mobile-full { width: 100% !important; flex: unset !important; }
+  .mobile-col  { flex-direction: column !important; }
+  .mobile-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .mobile-grid-1 { grid-template-columns: 1fr !important; }
+  .mobile-p { padding: 24px 20px !important; }
+  .mobile-text-center { text-align: center !important; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ── Design tokens ── */
+const C = {
+  bg:      '#fdf8f5',
+  bg2:     '#ede1d8',
+  panel:   '#e0cfc6',
+  ink:     '#2a0808',
+  mid:     '#a07060',
+  rule:    '#d8c4b8',
+  white:   '#fdf8f5',
+  red:     '#e9201f',
+  crimson: '#a81111',
+  serif:   "'Playfair Display', Georgia, serif",
+  body:    "'Ovo', Georgia, serif",
+  sans:    "'Jost', sans-serif",
+};
+
+/* ── Product catalogue ── */
+const PRODUCTS = [
+  { id:1,  name:'Bubble Cup & Saucer',  price:42, cat:'Ceramics',    tag:'Bestseller', img:'uploads/IMG_8507_2.png', desc:'Hand-glazed pink ceramic cup and cloud-shaped bubble saucer. A sculptural set for your daily rituals.',      variants:['Blush Pink','Ivory','Sage'] },
+  { id:2,  name:'Ripple Glass Tumbler', price:38, cat:'Glassware',   tag:'New',        img:'uploads/IMG_8468.png',   desc:'Wavy borosilicate glass with bamboo lid and glass straw. The rippled body catches light beautifully.',       variants:['Clear','Frosted','Smoke'] },
+  { id:3,  name:'Mushroom Lamp',        price:88, cat:'Lighting',    tag:'New',        img:'uploads/IMG_8562.png',   desc:'Swirled pink glass inspired by vintage Murano. Warm amber glow for your bedside or vanity.',               variants:['Pink Swirl','Ivory','Sage'] },
+  { id:4,  name:'Donut Ring Vase',      price:52, cat:'Vases',       tag:'',           img:'uploads/IMG_8580.png',   desc:'Matte white ceramic ring vase. Sculptural and minimal — beautiful with dried stems or on its own.',         variants:['White','Blush','Charcoal'] },
+  { id:5,  name:'Travel Bottles Set',   price:28, cat:'Travel',      tag:'',           img:'uploads/IMG_6086.JPG',   desc:'Pink-capped refillable travel bottles. TSA-friendly and sized for a 7–10 day trip.',                        variants:['Pink','Clear','Black'] },
+  { id:6,  name:'Ribbed Vase',          price:48, cat:'Vases',       tag:'',           img:'uploads/IMG_8574.png',   desc:'Textured white ceramic with natural jute collar. Perfect on a shelf, bedside table, or desk.',              variants:['White Natural','White Black'] },
+  { id:7,  name:'Heart Mirror',         price:45, cat:'Mirrors',     tag:'',           img:'uploads/IMG_8562.png',   desc:'White beaded heart frame mirror. A sweet statement piece for your vanity wall.',                           variants:['White','Pink'] },
+  { id:8,  name:'Pink Makeup Bag',      price:35, cat:'Accessories', tag:'',           img:'uploads/IMG_7013.png',   desc:'Saffiano PU leather makeup bag with gold zipper pull. Roomy, structured, and impossibly chic.',             variants:['Blush Pink','Ivory'] },
+];
+
+/* ── Persistent ratings ── */
+const RATINGS_KEY = 'smtr_ratings';
+function getRatings() { try { return JSON.parse(localStorage.getItem(RATINGS_KEY))||{}; } catch { return {}; } }
+function saveRating(id,v) { const r=getRatings(); r[id]=v; try { localStorage.setItem(RATINGS_KEY,JSON.stringify(r)); } catch {} }
+
+/* ── Stars ── */
+function Stars({ id, initial=4, size=13, color=C.crimson }) {
+  const [rating, setRating] = useState(getRatings()[id] || initial);
+  const [hover, setHover] = useState(0);
+  return (
+    <div style={{ display:'flex', gap:2, alignItems:'center' }}>
+      {[1,2,3,4,5].map(i=>(
+        <span key={i}
+          onClick={()=>{ setRating(i); saveRating(id,i); }}
+          onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(0)}
+          style={{ color:i<=(hover||rating)?color:'#d8c4b8', fontSize:size, cursor:'pointer', userSelect:'none', lineHeight:1 }}>★</span>
+      ))}
+      <span style={{ fontFamily:C.sans, fontSize:9, color:C.mid, marginLeft:4 }}>{(hover||rating).toFixed(1)}</span>
+    </div>
+  );
+}
+
+/* ── Wishlist hook ── */
+function useWishlist() {
+  const [items, setItems] = useState(()=>{ try { return JSON.parse(localStorage.getItem('smtr_wishlist'))||[]; } catch { return []; } });
+  const persist = it => { setItems(it); try { localStorage.setItem('smtr_wishlist',JSON.stringify(it)); } catch {} };
+  const toggle = product => {
+    const exists = items.find(i=>i.id===product.id);
+    if (exists) persist(items.filter(i=>i.id!==product.id));
+    else persist([...items, product]);
+  };
+  const has = id => items.some(i=>i.id===id);
+  return { items, toggle, has, count:items.length };
+}
+
+/* ── Cart hook ── */
+function useCart() {
+  const [items, setItems] = useState(()=>{ try { return JSON.parse(localStorage.getItem('smtr_cart'))||[]; } catch { return []; } });
+  const persist = it => { setItems(it); try { localStorage.setItem('smtr_cart',JSON.stringify(it)); } catch {} };
+  const add = (product, variant) => {
+    const ex = items.find(i=>i.id===product.id&&i.variant===variant);
+    if (ex) persist(items.map(i=>i.id===product.id&&i.variant===variant?{...i,qty:i.qty+1}:i));
+    else persist([...items, {...product, variant, qty:1}]);
+  };
+  const remove  = (id,variant) => persist(items.filter(i=>!(i.id===id&&i.variant===variant)));
+  const updateQty = (id,variant,qty) => { if(qty<1) remove(id,variant); else persist(items.map(i=>i.id===id&&i.variant===variant?{...i,qty}:i)); };
+  const total = items.reduce((s,i)=>s+i.price*i.qty,0);
+  const count = items.reduce((s,i)=>s+i.qty,0);
+  return { items, add, remove, updateQty, total, count };
+}
+
+/* ── Cart Drawer ── */
+function CartDrawer({ open, onClose, cart, onCheckout }) {
+  return (
+    <>
+      {open && <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(42,8,8,0.4)',zIndex:998,animation:'fadeIn 0.2s ease both' }} />}
+      <div style={{ position:'fixed',top:0,right:0,bottom:0,width:'min(420px,100vw)',background:C.white,zIndex:999,display:'flex',flexDirection:'column',transform:open?'translateX(0)':'translateX(100%)',transition:'transform 0.35s cubic-bezier(.22,1,.36,1)',boxShadow:open?'-8px 0 40px rgba(42,8,8,0.12)':'none' }}>
+        <div style={{ padding:'24px 28px',borderBottom:`1px solid ${C.rule}`,display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+          <div>
+            <p style={{ fontFamily:C.serif,fontSize:20,fontWeight:400,color:C.ink,fontStyle:'italic' }}>Your Cart</p>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2,letterSpacing:'0.1em' }}>{cart.count} {cart.count===1?'item':'items'}</p>
+          </div>
+          <button onClick={onClose} style={{ background:'none',border:'none',fontSize:24,color:C.mid,lineHeight:1,padding:'4px 8px' }}>×</button>
+        </div>
+        <div style={{ flex:1,overflowY:'auto',padding:'0 28px' }}>
+          {cart.items.length===0?(
+            <div style={{ textAlign:'center',padding:'64px 0' }}>
+              <p style={{ fontFamily:C.serif,fontSize:20,fontStyle:'italic',color:C.mid }}>Your cart is empty</p>
+              <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:8 }}>Add something beautiful</p>
+            </div>
+          ):cart.items.map((item,i)=>(
+            <div key={i} style={{ display:'grid',gridTemplateColumns:'72px 1fr auto',gap:14,alignItems:'center',padding:'20px 0',borderBottom:`1px solid ${C.rule}` }}>
+              <div style={{ width:72,height:72,overflow:'hidden',background:C.bg2,flexShrink:0 }}>
+                {item.img && <img src={item.img} alt={item.name} style={{ width:'100%',height:'100%',objectFit:'cover' }} />}
+              </div>
+              <div>
+                <p style={{ fontFamily:C.body,fontSize:14,color:C.ink }}>{item.name}</p>
+                <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:3 }}>{item.variant}</p>
+                <div style={{ display:'flex',gap:8,alignItems:'center',marginTop:8 }}>
+                  <button onClick={()=>cart.updateQty(item.id,item.variant,item.qty-1)} style={{ width:24,height:24,border:`1px solid ${C.rule}`,background:'transparent',color:C.ink,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center' }}>−</button>
+                  <span style={{ fontFamily:C.sans,fontSize:12,color:C.ink,minWidth:16,textAlign:'center' }}>{item.qty}</span>
+                  <button onClick={()=>cart.updateQty(item.id,item.variant,item.qty+1)} style={{ width:24,height:24,border:`1px solid ${C.rule}`,background:'transparent',color:C.ink,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center' }}>+</button>
+                </div>
+              </div>
+              <div style={{ textAlign:'right',display:'flex',flexDirection:'column',gap:8,alignItems:'flex-end' }}>
+                <p style={{ fontFamily:C.serif,fontSize:15,color:C.ink }}>${(item.price*item.qty).toFixed(0)}</p>
+                <button onClick={()=>cart.remove(item.id,item.variant)} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:9,color:C.mid,letterSpacing:'0.1em',textTransform:'uppercase' }}>Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {cart.items.length>0&&(
+          <div style={{ padding:'24px 28px',borderTop:`1px solid ${C.rule}`,display:'flex',flexDirection:'column',gap:12 }}>
+            <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline' }}>
+              <span style={{ fontFamily:C.sans,fontSize:12,color:C.mid }}>Subtotal</span>
+              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>${cart.total.toFixed(2)}</span>
+            </div>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,textAlign:'center' }}>Free shipping on orders over $75</p>
+            <button className="btn-primary" onClick={onCheckout} style={{ padding:'15px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.22em',textTransform:'uppercase' }}>
+              Checkout →
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── Wishlist Drawer ── */
+function WishlistDrawer({ open, onClose, wishlist, cart, setPage, setSelectedProduct }) {
+  return (
+    <>
+      {open && <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(42,8,8,0.4)',zIndex:998,animation:'fadeIn 0.2s ease both' }} />}
+      <div style={{ position:'fixed',top:0,right:0,bottom:0,width:'min(420px,100vw)',background:C.white,zIndex:999,display:'flex',flexDirection:'column',transform:open?'translateX(0)':'translateX(100%)',transition:'transform 0.35s cubic-bezier(.22,1,.36,1)',boxShadow:open?'-8px 0 40px rgba(42,8,8,0.12)':'none' }}>
+        <div style={{ padding:'24px 28px',borderBottom:`1px solid ${C.rule}`,display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+          <div>
+            <p style={{ fontFamily:C.serif,fontSize:20,fontWeight:400,color:C.ink,fontStyle:'italic' }}>Wishlist</p>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2,letterSpacing:'0.1em' }}>{wishlist.count} {wishlist.count===1?'item':'items'} saved</p>
+          </div>
+          <button onClick={onClose} style={{ background:'none',border:'none',fontSize:24,color:C.mid,lineHeight:1,padding:'4px 8px' }}>×</button>
+        </div>
+        <div style={{ flex:1,overflowY:'auto',padding:'0 28px' }}>
+          {wishlist.items.length===0?(
+            <div style={{ textAlign:'center',padding:'64px 0' }}>
+              <p style={{ fontFamily:C.serif,fontSize:22,fontStyle:'italic',color:C.mid }}>Nothing saved yet</p>
+              <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:8 }}>Tap ♡ on any product to save it here</p>
+            </div>
+          ):wishlist.items.map((item,i)=>(
+            <div key={i} style={{ display:'grid',gridTemplateColumns:'80px 1fr auto',gap:14,alignItems:'center',padding:'20px 0',borderBottom:`1px solid ${C.rule}` }}>
+              <div style={{ width:80,height:80,overflow:'hidden',background:C.bg2,cursor:'pointer',flexShrink:0 }} onClick={()=>{ setSelectedProduct(item); setPage('product'); onClose(); }}>
+                <img src={item.img} alt={item.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top' }} />
+              </div>
+              <div>
+                <p style={{ fontFamily:C.body,fontSize:14,color:C.ink,cursor:'pointer' }} onClick={()=>{ setSelectedProduct(item); setPage('product'); onClose(); }}>{item.name}</p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:3 }}>${item.price}</p>
+                <button
+                  onClick={()=>{ cart.add(item,item.variants[0]); wishlist.toggle(item); }}
+                  style={{ marginTop:8,padding:'7px 16px',background:C.crimson,color:'white',border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',transition:'background 0.15s',cursor:'pointer' }}
+                  onMouseEnter={e=>e.currentTarget.style.background=C.red}
+                  onMouseLeave={e=>e.currentTarget.style.background=C.crimson}
+                >Add to Cart</button>
+              </div>
+              <button onClick={()=>wishlist.toggle(item)} style={{ background:'none',border:'none',color:C.crimson,fontSize:20,cursor:'pointer',padding:4 }}>♥</button>
+            </div>
+          ))}
+        </div>
+        {wishlist.items.length>0&&(
+          <div style={{ padding:'24px 28px',borderTop:`1px solid ${C.rule}` }}>
+            <button className="btn-primary" onClick={()=>{ wishlist.items.forEach(item=>cart.add(item,item.variants[0])); onClose(); }} style={{ width:'100%',padding:'14px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer' }}>
+              Add All to Cart
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── Nav ── */
+function Nav({ cartCount, wishlistCount, onCartOpen, onWishlistOpen, setPage }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(()=>{
+    const h=()=>setScrolled(window.scrollY>40);
+    window.addEventListener('scroll',h);
+    return ()=>window.removeEventListener('scroll',h);
+  },[]);
+
+  const logoSrc = 'uploads/shop more than rubies logo and brand mark - 4.PNG';
+
+  return (
+    <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:900,background:scrolled?'rgba(253,248,245,0.96)':'transparent',backdropFilter:scrolled?'blur(8px)':'none',borderBottom:scrolled?`1px solid ${C.rule}`:'1px solid transparent',transition:'all 0.3s ease',padding:'0 clamp(20px,5vw,56px)',height:64,display:'flex',alignItems:'center',justifyContent:'space-between' }}>
+      {/* Left links */}
+      <div style={{ display:'flex',gap:28,alignItems:'center',flex:'0 0 140px' }} className="hide-mobile">
+        {['Shop','About'].map(l=>(
+          <button key={l} className="nav-link" onClick={()=>{ setPage(l.toLowerCase()); setMenuOpen(false); }} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.18em',textTransform:'uppercase',color:C.ink,padding:0,cursor:'pointer' }}>{l}</button>
+        ))}
+      </div>
+
+      {/* Logo / brand */}
+      <button onClick={()=>setPage('home')} style={{ background:'none',border:'none',textAlign:'center',padding:0,cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:2 }}>
+        <img src={logoSrc} alt="Shopmorethanrubies" style={{ height:36,objectFit:'contain' }} onError={e=>{ e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+        <span style={{ fontFamily:C.serif,fontSize:18,fontWeight:400,color:C.ink,letterSpacing:'0.04em',whiteSpace:'nowrap',display:'none' }}>Shopmorethanrubies</span>
+        <p style={{ fontFamily:C.sans,fontSize:8,letterSpacing:'0.28em',color:C.mid,textTransform:'uppercase' }}>Home & Lifestyle</p>
+      </button>
+
+      {/* Right actions */}
+      <div style={{ display:'flex',gap:20,alignItems:'center',flex:'0 0 140px',justifyContent:'flex-end' }}>
+        <button onClick={onWishlistOpen} style={{ background:'none',border:'none',display:'flex',alignItems:'center',cursor:'pointer',padding:0,position:'relative' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          {wishlistCount>0&&<span style={{ position:'absolute',top:-6,right:-6,background:C.crimson,color:'white',fontSize:9,width:16,height:16,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:C.sans }}>{wishlistCount}</span>}
+        </button>
+        <button onClick={onCartOpen} style={{ background:'none',border:'none',display:'flex',alignItems:'center',cursor:'pointer',padding:0,position:'relative' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          {cartCount>0&&<span style={{ position:'absolute',top:-6,right:-6,background:C.crimson,color:'white',fontSize:9,width:16,height:16,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:C.sans }}>{cartCount}</span>}
+        </button>
+        {/* Hamburger — visible on mobile */}
+        <button onClick={()=>setMenuOpen(!menuOpen)} style={{ background:'none',border:'none',padding:4,display:'none',flexDirection:'column',gap:5 }} className="show-mobile">
+          <div style={{ width:20,height:1,background:C.ink,transition:'all 0.2s',transform:menuOpen?'rotate(45deg) translate(4px,4px)':'none' }} />
+          <div style={{ width:20,height:1,background:C.ink,transition:'opacity 0.2s',opacity:menuOpen?0:1 }} />
+          <div style={{ width:20,height:1,background:C.ink,transition:'all 0.2s',transform:menuOpen?'rotate(-45deg) translate(4px,-4px)':'none' }} />
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      {menuOpen&&(
+        <div style={{ position:'absolute',top:64,left:0,right:0,background:C.white,borderBottom:`1px solid ${C.rule}`,padding:'20px 24px',display:'flex',flexDirection:'column',gap:0,zIndex:910 }}>
+          {['Home','Shop','About'].map(l=>(
+            <button key={l} onClick={()=>{ setPage(l.toLowerCase()); setMenuOpen(false); }} style={{ background:'none',border:'none',borderBottom:`1px solid ${C.rule}`,fontFamily:C.sans,fontSize:12,letterSpacing:'0.16em',textTransform:'uppercase',color:C.ink,textAlign:'left',padding:'14px 0',cursor:'pointer' }}>{l}</button>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+/* ── Promo Banner ── */
+function PromoBanner() {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+  return (
+    <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'10px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
+      <span>Free shipping on orders over $75 · Delivered by Fez</span>
+      <button onClick={()=>setVisible(false)} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
+    </div>
+  );
+}
+
+/* ── Hero ── */
+function Hero({ setPage }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(()=>{ const t=setTimeout(()=>setVisible(true),120); return ()=>clearTimeout(t); },[]);
+  const words = ['Objects','that outlast','the moment'];
+  return (
+    <section style={{ minHeight:'100vh',background:C.bg,display:'flex',position:'relative',overflow:'hidden',paddingTop:64 }}>
+      {/* Left */}
+      <div style={{ flex:'0 0 45%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'clamp(40px,8vw,88px) clamp(20px,5vw,56px)',gap:28,minWidth:0 }} className="mobile-full mobile-p">
+        <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.32em',color:C.mid,textTransform:'uppercase',opacity:visible?1:0,transition:'opacity 0.5s 0.2s ease' }}>
+          Curated · Spring 2026
+        </p>
+        <h1 style={{ fontFamily:C.serif,fontWeight:700,lineHeight:1.02,color:C.ink,fontSize:'clamp(36px,5vw,68px)',overflow:'hidden' }}>
+          {words.map((w,i)=>(
+            <span key={i} style={{ display:'block',overflow:'hidden' }}>
+              <span style={{ display:'block',transform:visible?'translateY(0)':'translateY(100%)',transition:`transform 0.7s cubic-bezier(.22,1,.36,1) ${0.3+i*0.12}s` }}>{w}</span>
+            </span>
+          ))}
+        </h1>
+        <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:2,maxWidth:300,opacity:visible?1:0,transition:'opacity 0.6s 0.8s ease' }}>
+          Candles. Mirrors. Vases. Things that make a room feel like yours.
+        </p>
+        <div style={{ display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',opacity:visible?1:0,transition:'opacity 0.6s 1s ease' }}>
+          <button className="btn-primary" onClick={()=>setPage('shop')} style={{ padding:'13px 36px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.22em',textTransform:'uppercase',cursor:'pointer' }}>
+            Shop Collection
+          </button>
+          <button onClick={()=>setPage('about')} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:10,color:C.mid,letterSpacing:'0.14em',textDecoration:'underline',textUnderlineOffset:3,cursor:'pointer' }}>
+            Our Story
+          </button>
+        </div>
+        {/* Trust badges */}
+        <div style={{ display:'flex',gap:20,flexWrap:'wrap',opacity:visible?1:0,transition:'opacity 0.6s 1.2s ease',marginTop:4 }}>
+          {['Quality Tested','Trusted by 1000+','Fez Delivery'].map(t=>(
+            <span key={t} style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',color:C.mid,textTransform:'uppercase',display:'flex',alignItems:'center',gap:6 }}>
+              <span style={{ width:4,height:4,borderRadius:'50%',background:C.crimson,display:'inline-block' }} />{t}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Right mosaic */}
+      <div style={{ flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:3,minHeight:560 }} className="hide-mobile">
+        <div style={{ gridRow:'1/span 2',overflow:'hidden',opacity:visible?1:0,transition:'opacity 0.8s 0.3s ease' }}>
+          <img src="uploads/IMG_8580.png" alt="donut ring vase" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',transform:visible?'scale(1)':'scale(1.05)',transition:'transform 0.9s 0.3s ease' }} />
+        </div>
+        <div style={{ overflow:'hidden',opacity:visible?1:0,transition:'opacity 0.8s 0.5s ease' }}>
+          <img src="uploads/IMG_8507_2.png" alt="bubble cup" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top' }} />
+        </div>
+        <div style={{ overflow:'hidden',opacity:visible?1:0,transition:'opacity 0.8s 0.7s ease' }}>
+          <img src="uploads/IMG_8468.png" alt="glass tumbler" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Shop Page ── */
+function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
+  const [filter, setFilter] = useState('All');
+  const [addedId, setAddedId] = useState(null);
+  const cats = ['All', ...new Set(PRODUCTS.map(p=>p.cat))];
+  const filtered = filter==='All' ? PRODUCTS : PRODUCTS.filter(p=>p.cat===filter);
+
+  const handleQuickAdd = (e, product) => {
+    e.stopPropagation();
+    cart.add(product, product.variants[0]);
+    setAddedId(product.id);
+    setTimeout(()=>setAddedId(null), 1400);
+  };
+
+  const handleWishlistToggle = (e, product) => {
+    e.stopPropagation();
+    wishlist.toggle(product);
+  };
+
+  return (
+    <div style={{ paddingTop:64 }}>
+      <div style={{ padding:'48px clamp(20px,5vw,56px) 32px',background:C.bg2 }}>
+        <h1 style={{ fontFamily:C.serif,fontSize:'clamp(28px,4vw,48px)',fontWeight:400,fontStyle:'italic',color:C.ink }}>Shop Everything</h1>
+        <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:8,letterSpacing:'0.1em' }}>{PRODUCTS.length} products</p>
+      </div>
+
+      {/* Filter bar */}
+      <div style={{ padding:'20px clamp(20px,5vw,56px)',borderBottom:`1px solid ${C.rule}`,display:'flex',gap:6,overflowX:'auto',background:C.white,flexWrap:'wrap' }}>
+        {cats.map(c=>(
+          <button key={c} onClick={()=>setFilter(c)} style={{ padding:'7px 18px',border:`1px solid ${filter===c?C.ink:C.rule}`,background:filter===c?C.ink:'transparent',color:filter===c?C.white:C.mid,fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',transition:'all 0.15s',whiteSpace:'nowrap',cursor:'pointer' }}>{c}</button>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div style={{ padding:'36px clamp(20px,5vw,56px) 80px',background:C.bg }}>
+        <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:20 }} className="mobile-grid-2">
+          {filtered.map((product,i)=>(
+            <div key={product.id} className="product-card" onClick={()=>{ setSelectedProduct(product); setPage('product'); }}
+              style={{ background:C.white,cursor:'pointer',position:'relative' }}>
+              {product.tag&&(
+                <div style={{ position:'absolute',top:10,left:10,zIndex:1,padding:'4px 10px',background:C.ink,fontFamily:C.sans,fontSize:8,letterSpacing:'0.18em',color:'white',textTransform:'uppercase' }}>{product.tag}</div>
+              )}
+              {/* Wishlist heart */}
+              <button onClick={e=>handleWishlistToggle(e,product)} style={{ position:'absolute',top:10,right:10,zIndex:2,background:'rgba(253,248,245,0.85)',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,color:wishlist.has(product.id)?C.crimson:C.mid,cursor:'pointer',transition:'all 0.15s',backdropFilter:'blur(4px)' }}
+                onMouseEnter={e=>e.currentTarget.style.color=C.crimson}
+                onMouseLeave={e=>e.currentTarget.style.color=wishlist.has(product.id)?C.crimson:C.mid}
+              >{wishlist.has(product.id)?'♥':'♡'}</button>
+              <div className="card-img" style={{ height:220,overflow:'hidden',background:C.bg2 }}>
+                <img src={product.img} alt={product.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',display:'block' }} />
+              </div>
+              <div className="card-overlay" style={{ position:'absolute',bottom:84,left:0,right:0,display:'flex',justifyContent:'center',opacity:0,padding:'0 16px' }}>
+                <button className="btn-primary" onClick={e=>handleQuickAdd(e,product)} style={{ width:'100%',padding:'10px',background:addedId===product.id?'#4caf50':C.crimson,color:'white',border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',textTransform:'uppercase',transition:'background 0.2s ease',cursor:'pointer' }}>
+                  {addedId===product.id?'✓ Added':'Quick Add'}
+                </button>
+              </div>
+              <div style={{ padding:'14px 16px 18px' }}>
+                <p style={{ fontFamily:C.body,fontSize:16,color:C.ink }}>{product.name}</p>
+                <Stars id={`shop-${product.id}`} initial={[5,4,5,5,4,5,5,4][i]||4} size={12} />
+                <p style={{ fontFamily:C.sans,fontSize:12,color:C.mid,marginTop:6 }}>${product.price}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Product Page ── */
+function ProductPage({ product, cart, wishlist, setPage }) {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+  const [selectedImg, setSelectedImg] = useState(0);
+  const [added, setAdded] = useState(false);
+  const imgs = [product.img, product.img, product.img];
+
+  const handleAdd = () => {
+    cart.add(product, selectedVariant);
+    setAdded(true);
+    setTimeout(()=>setAdded(false), 1800);
+  };
+
+  return (
+    <div style={{ paddingTop:64,minHeight:'100vh',background:C.white }}>
+      {/* Breadcrumb */}
+      <div style={{ padding:'16px clamp(20px,5vw,56px)',borderBottom:`1px solid ${C.rule}`,display:'flex',gap:8,alignItems:'center' }}>
+        {[{l:'Home',p:'home'},{l:'Shop',p:'shop'}].map((b,i)=>(
+          <React.Fragment key={i}>
+            <button onClick={()=>setPage(b.p)} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:10,color:C.mid,cursor:'pointer',padding:0,letterSpacing:'0.1em' }}>{b.l}</button>
+            <span style={{ color:C.rule,fontSize:10 }}>›</span>
+          </React.Fragment>
+        ))}
+        <span style={{ fontFamily:C.sans,fontSize:10,color:C.ink,letterSpacing:'0.1em' }}>{product.name}</span>
+      </div>
+
+      {/* Content */}
+      <div style={{ display:'flex',gap:0,minHeight:'80vh' }} className="mobile-col">
+        {/* Images */}
+        <div style={{ flex:'0 0 50%',background:C.bg,padding:32,display:'flex',flexDirection:'column',gap:10 }} className="mobile-full">
+          <div style={{ height:400,overflow:'hidden' }}>
+            <img src={imgs[selectedImg]} alt={product.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',transition:'opacity 0.3s ease' }} />
+          </div>
+          <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8 }}>
+            {imgs.map((img,i)=>(
+              <div key={i} onClick={()=>setSelectedImg(i)} style={{ height:80,overflow:'hidden',cursor:'pointer',border:`2px solid ${selectedImg===i?C.crimson:'transparent'}`,transition:'border-color 0.15s' }}>
+                <img src={img} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div style={{ flex:1,padding:'clamp(28px,5vw,56px)',display:'flex',flexDirection:'column',gap:18 }}>
+          <div style={{ display:'flex',gap:10,alignItems:'center',flexWrap:'wrap' }}>
+            <span style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.18em',color:C.mid,textTransform:'uppercase' }}>{product.cat}</span>
+            <span style={{ color:C.rule }}>·</span>
+            <span style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.18em',color:'#4caf50' }}>In stock</span>
+            {product.tag&&<span style={{ padding:'3px 8px',background:C.ink,fontFamily:C.sans,fontSize:8,letterSpacing:'0.14em',color:'white',textTransform:'uppercase' }}>{product.tag}</span>}
+          </div>
+
+          <h1 style={{ fontFamily:C.serif,fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:C.ink,lineHeight:1.05 }}>{product.name}</h1>
+          <Stars id={`product-${product.id}`} initial={5} size={16} color={C.red} />
+
+          <div style={{ display:'flex',alignItems:'baseline',gap:16 }}>
+            <p style={{ fontFamily:C.serif,fontSize:28,color:C.ink }}>${product.price}</p>
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid }}>Free shipping over $75</p>
+          </div>
+
+          <div style={{ height:1,background:C.rule }} />
+
+          <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:2,maxWidth:400 }}>{product.desc}</p>
+
+          {/* Variants */}
+          <div>
+            <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.18em',color:C.mid,textTransform:'uppercase',marginBottom:10 }}>Colour / Finish</p>
+            <div style={{ display:'flex',gap:8,flexWrap:'wrap' }}>
+              {product.variants.map(v=>(
+                <button key={v} onClick={()=>setSelectedVariant(v)} style={{ padding:'9px 18px',border:`1px solid ${selectedVariant===v?C.ink:C.rule}`,background:selectedVariant===v?C.ink:'transparent',color:selectedVariant===v?C.white:C.mid,fontFamily:C.sans,fontSize:10,transition:'all 0.15s',cursor:'pointer' }}>{v}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add to cart + wishlist */}
+          <div style={{ display:'flex',gap:10,marginTop:4 }}>
+            <button className="btn-primary" onClick={handleAdd} style={{ flex:1,padding:'15px',border:'none',background:added?'#4caf50':C.crimson,color:C.white,fontFamily:C.sans,fontSize:10,letterSpacing:'0.22em',textTransform:'uppercase',transition:'background 0.25s ease',cursor:'pointer' }}>
+              {added?'✓ Added to Cart':'Add to Cart'}
+            </button>
+            <button
+              onClick={()=>wishlist.toggle(product)}
+              style={{ width:48,height:48,border:`1px solid ${wishlist.has(product.id)?C.crimson:C.rule}`,background:wishlist.has(product.id)?'#fff0f0':'transparent',color:wishlist.has(product.id)?C.crimson:C.mid,fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',cursor:'pointer' }}
+              onMouseEnter={e=>{ if(!wishlist.has(product.id)){e.currentTarget.style.borderColor=C.crimson;e.currentTarget.style.color=C.crimson;} }}
+              onMouseLeave={e=>{ if(!wishlist.has(product.id)){e.currentTarget.style.borderColor=C.rule;e.currentTarget.style.color=C.mid;} }}
+            >{wishlist.has(product.id)?'♥':'♡'}</button>
+          </div>
+
+          {/* Details */}
+          <div style={{ marginTop:4,display:'flex',flexDirection:'column',gap:6 }}>
+            {['Handmade in small batches','Ships in 2–4 business days via Fez','30-day hassle-free returns','Free shipping on orders over $75'].map(t=>(
+              <div key={t} style={{ display:'flex',gap:10,alignItems:'center' }}>
+                <div style={{ width:4,height:4,borderRadius:'50%',background:C.mid,flexShrink:0 }} />
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>{t}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* You may also like */}
+      <div style={{ padding:'56px clamp(20px,5vw,56px)',background:C.bg2 }}>
+        <h2 style={{ fontFamily:C.serif,fontSize:28,fontWeight:400,fontStyle:'italic',color:C.ink,marginBottom:32 }}>You may also like</h2>
+        <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:16 }} className="mobile-grid-2">
+          {PRODUCTS.filter(p=>p.id!==product.id).slice(0,4).map(p=>(
+            <div key={p.id} className="product-card" onClick={()=>{ setSelectedProduct && setSelectedProduct(p); setPage('product'); }} style={{ background:C.white,cursor:'pointer' }}>
+              <div style={{ height:160,overflow:'hidden',background:C.bg }}>
+                <img src={p.img} alt={p.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',transition:'transform 0.4s ease' }} />
+              </div>
+              <div style={{ padding:'12px 14px 16px' }}>
+                <p style={{ fontFamily:C.body,fontSize:14,color:C.ink }}>{p.name}</p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,marginTop:4 }}>${p.price}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── About Page ── */
+function About() {
+  return (
+    <div style={{ paddingTop:64 }}>
+      <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',minHeight:'60vh' }} className="mobile-grid-1">
+        <div style={{ overflow:'hidden',minHeight:320 }}>
+          <img src="uploads/IMG_8562.png" alt="brand" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
+        </div>
+        <div style={{ padding:'clamp(40px,6vw,72px)',display:'flex',flexDirection:'column',gap:24,justifyContent:'center',background:C.bg }}>
+          <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.28em',color:C.mid,textTransform:'uppercase' }}>Our Story</p>
+          <h1 style={{ fontFamily:C.serif,fontSize:'clamp(28px,4vw,48px)',fontWeight:400,lineHeight:1.1,color:C.ink }}>
+            Founded on the<br/><em>belief that beauty</em><br/>is never frivolous
+          </h1>
+          <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:2 }}>
+            Shopmorethanrubies began as a personal search — for objects that felt right in the hand, meaningful in the room, and honest in the making. We found them, and we wanted to share them.
+          </p>
+          <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:2 }}>
+            Every product we carry has been lived with before it reached you.
+          </p>
+        </div>
+      </div>
+      <div style={{ padding:'64px clamp(20px,5vw,56px)',background:C.bg2,display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:32,textAlign:'center' }} className="mobile-grid-1">
+        {[
+          {n:'Hand-selected',     d:'Every product is personally curated before it reaches you'},
+          {n:'Quality tested',    d:'Trusted by thousands of happy customers across Africa'},
+          {n:'Small batch',       d:'Limited quantities, lasting quality — always worth it'},
+        ].map(v=>(
+          <div key={v.n}>
+            <p style={{ fontFamily:C.serif,fontSize:22,fontWeight:400,color:C.ink,fontStyle:'italic' }}>{v.n}</p>
+            <p style={{ fontFamily:C.body,fontSize:13,color:C.mid,marginTop:10,lineHeight:1.9 }}>{v.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Checkout ── */
+function Checkout({ cart, onBack, onComplete }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({ first:'',last:'',email:'',phone:'',address:'',city:'',state:'',zip:'',country:'Nigeria',shipping:'',cardNum:'',expiry:'',cvv:'',name:'' });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  const inputStyle = { width:'100%',padding:'11px 14px',border:`1px solid ${C.rule}`,background:C.white,fontFamily:C.sans,fontSize:13,color:C.ink,outline:'none',transition:'border-color 0.15s' };
+  const steps = ['Contact','Shipping','Payment','Confirm'];
+
+  const focusStyle = e => e.target.style.borderColor = C.ink;
+  const blurStyle  = e => e.target.style.borderColor = C.rule;
+
+  return (
+    <div style={{ paddingTop:64,minHeight:'100vh',background:C.bg }}>
+      {/* Progress */}
+      <div style={{ padding:'24px clamp(20px,5vw,56px)',background:C.white,borderBottom:`1px solid ${C.rule}` }}>
+        <button onClick={onBack} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:10,color:C.mid,letterSpacing:'0.12em',cursor:'pointer',marginBottom:16 }}>← Back to cart</button>
+        <div style={{ display:'flex',gap:0,alignItems:'center' }}>
+          {steps.map((s,i)=>(
+            <React.Fragment key={i}>
+              <div style={{ display:'flex',alignItems:'center',gap:8 }}>
+                <div style={{ width:28,height:28,borderRadius:'50%',background:step>i+1?C.crimson:step===i+1?C.ink:'transparent',border:`1px solid ${step>=i+1?C.ink:C.rule}`,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.2s',flexShrink:0 }}>
+                  {step>i+1?<span style={{ color:'white',fontSize:12 }}>✓</span>:<span style={{ fontFamily:C.sans,fontSize:10,color:step===i+1?'white':C.mid }}>{i+1}</span>}
+                </div>
+                <span style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.12em',textTransform:'uppercase',color:step>=i+1?C.ink:C.mid }} className="hide-mobile">{s}</span>
+              </div>
+              {i<steps.length-1&&<div style={{ flex:1,height:1,background:C.rule,margin:'0 8px' }} />}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display:'grid',gridTemplateColumns:'1fr 360px',gap:0,maxWidth:1100,margin:'0 auto' }} className="mobile-grid-1">
+        {/* Form */}
+        <div style={{ padding:'clamp(24px,4vw,48px)' }}>
+          {step===1&&(
+            <div style={{ display:'flex',flexDirection:'column',gap:20 }}>
+              <h2 style={{ fontFamily:C.serif,fontSize:28,fontStyle:'italic',color:C.ink }}>Contact</h2>
+              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>First Name</label><input style={inputStyle} value={form.first} onChange={e=>set('first',e.target.value)} placeholder="Ada" onFocus={focusStyle} onBlur={blurStyle} /></div>
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Last Name</label><input style={inputStyle} value={form.last} onChange={e=>set('last',e.target.value)} placeholder="Okafor" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              </div>
+              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Email</label><input style={inputStyle} type="email" value={form.email} onChange={e=>set('email',e.target.value)} placeholder="ada@email.com" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Phone</label><input style={inputStyle} value={form.phone} onChange={e=>set('phone',e.target.value)} placeholder="+234 800 000 0000" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <button className="btn-primary" onClick={()=>setStep(2)} style={{ padding:'14px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',marginTop:8,cursor:'pointer' }}>Continue to Shipping →</button>
+            </div>
+          )}
+
+          {step===2&&(
+            <div style={{ display:'flex',flexDirection:'column',gap:20 }}>
+              <h2 style={{ fontFamily:C.serif,fontSize:28,fontStyle:'italic',color:C.ink }}>Shipping</h2>
+              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Street Address</label><input style={inputStyle} value={form.address} onChange={e=>set('address',e.target.value)} placeholder="12 Victoria Island" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>City</label><input style={inputStyle} value={form.city} onChange={e=>set('city',e.target.value)} placeholder="Lagos" onFocus={focusStyle} onBlur={blurStyle} /></div>
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>State</label><input style={inputStyle} value={form.state} onChange={e=>set('state',e.target.value)} placeholder="Lagos State" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              </div>
+              <div>
+                <label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Country</label>
+                <select style={{ ...inputStyle,appearance:'none' }} value={form.country} onChange={e=>set('country',e.target.value)}>
+                  {['Nigeria','Ghana','Kenya','South Africa','United Kingdom','United States','Canada'].map(c=><option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
+                {[['Fez Delivery — Free','3–5 business days'],['Fez Express — $12','1–2 business days']].map(([label,sub],i)=>(
+                  <div key={i} onClick={()=>set('shipping',label)} style={{ padding:'14px 16px',border:`1px solid ${form.shipping===label||(!form.shipping&&i===0)?C.ink:C.rule}`,cursor:'pointer',transition:'border-color 0.15s',background:form.shipping===label||(!form.shipping&&i===0)?'#fff8f6':'transparent' }}>
+                    <p style={{ fontFamily:C.sans,fontSize:11,color:C.ink }}>{label}</p>
+                    <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2 }}>{sub}</p>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:'flex',gap:12,marginTop:8 }}>
+                <button onClick={()=>setStep(1)} style={{ padding:'14px 24px',background:'transparent',color:C.mid,border:`1px solid ${C.rule}`,fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer' }}>← Back</button>
+                <button className="btn-primary" onClick={()=>setStep(3)} style={{ flex:1,padding:'14px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer' }}>Continue to Payment →</button>
+              </div>
+            </div>
+          )}
+
+          {step===3&&(
+            <div style={{ display:'flex',flexDirection:'column',gap:20 }}>
+              <h2 style={{ fontFamily:C.serif,fontSize:28,fontStyle:'italic',color:C.ink }}>Payment</h2>
+              <div style={{ padding:'12px 16px',background:'#f0faf0',border:'1px solid #c8e6c9',display:'flex',gap:10,alignItems:'center' }}>
+                <span style={{ color:'#4caf50',fontSize:14 }}>🔒</span>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:'#2e7d32' }}>Your payment info is encrypted and secure</p>
+              </div>
+              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Card Number</label><input style={inputStyle} value={form.cardNum} onChange={e=>set('cardNum',e.target.value)} placeholder="4242 4242 4242 4242" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Name on Card</label><input style={inputStyle} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="Ada Okafor" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Expiry</label><input style={inputStyle} value={form.expiry} onChange={e=>set('expiry',e.target.value)} placeholder="MM/YY" onFocus={focusStyle} onBlur={blurStyle} /></div>
+                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>CVV</label><input style={inputStyle} value={form.cvv} onChange={e=>set('cvv',e.target.value)} placeholder="•••" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              </div>
+              <div style={{ display:'flex',gap:12,marginTop:8 }}>
+                <button onClick={()=>setStep(2)} style={{ padding:'14px 24px',background:'transparent',color:C.mid,border:`1px solid ${C.rule}`,fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer' }}>← Back</button>
+                <button className="btn-primary" onClick={()=>setStep(4)} style={{ flex:1,padding:'14px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer' }}>Place Order →</button>
+              </div>
+            </div>
+          )}
+
+          {step===4&&(
+            <div style={{ display:'flex',flexDirection:'column',gap:24,alignItems:'center',textAlign:'center',padding:'48px 0' }}>
+              <div style={{ width:64,height:64,borderRadius:'50%',background:'#f0faf0',border:'2px solid #4caf50',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28 }}>✓</div>
+              <h2 style={{ fontFamily:C.serif,fontSize:32,fontStyle:'italic',color:C.ink }}>Order Confirmed!</h2>
+              <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:2,maxWidth:380 }}>
+                Thank you for your order, {form.first||'lovely'}. We'll send a confirmation to {form.email||'your email'} once your order is on its way.
+              </p>
+              <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,letterSpacing:'0.1em' }}>Delivered by Fez · 3–5 business days</p>
+              <button className="btn-primary" onClick={onComplete} style={{ padding:'13px 40px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',marginTop:8,cursor:'pointer' }}>Continue Shopping →</button>
+            </div>
+          )}
+        </div>
+
+        {/* Order summary sidebar */}
+        <div style={{ background:C.bg2,padding:'clamp(24px,4vw,48px)',borderLeft:`1px solid ${C.rule}` }}>
+          <h3 style={{ fontFamily:C.serif,fontSize:20,fontWeight:400,color:C.ink,marginBottom:24 }}>Order Summary</h3>
+          <div style={{ display:'flex',flexDirection:'column',gap:0 }}>
+            {cart.items.map((item,i)=>(
+              <div key={i} style={{ display:'grid',gridTemplateColumns:'56px 1fr auto',gap:12,alignItems:'center',padding:'14px 0',borderBottom:`1px solid ${C.rule}` }}>
+                <div style={{ width:56,height:56,overflow:'hidden',background:C.panel,position:'relative' }}>
+                  <img src={item.img} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} />
+                  <div style={{ position:'absolute',top:-4,right:-4,background:C.ink,color:'white',fontSize:9,width:16,height:16,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center' }}>{item.qty}</div>
+                </div>
+                <div>
+                  <p style={{ fontFamily:C.body,fontSize:13,color:C.ink }}>{item.name}</p>
+                  <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:2 }}>{item.variant}</p>
+                </div>
+                <p style={{ fontFamily:C.serif,fontSize:14,color:C.ink }}>${(item.price*item.qty).toFixed(0)}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop:20,display:'flex',flexDirection:'column',gap:10 }}>
+            {[['Subtotal',`$${cart.total.toFixed(2)}`],['Shipping','Free'],['Tax',`$${(cart.total*0.08).toFixed(2)}`]].map(([k,v])=>(
+              <div key={k} style={{ display:'flex',justifyContent:'space-between' }}>
+                <span style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>{k}</span>
+                <span style={{ fontFamily:C.serif,fontSize:13,color:C.ink }}>{v}</span>
+              </div>
+            ))}
+            <div style={{ height:1,background:C.rule,margin:'4px 0' }} />
+            <div style={{ display:'flex',justifyContent:'space-between' }}>
+              <span style={{ fontFamily:C.sans,fontSize:12,fontWeight:500,color:C.ink }}>Total</span>
+              <span style={{ fontFamily:C.serif,fontSize:18,color:C.ink }}>${(cart.total*1.08).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Footer ── */
+function Footer({ setPage }) {
+  return (
+    <footer style={{ background:C.ink,padding:'56px clamp(20px,5vw,56px) 40px' }}>
+      <div style={{ display:'grid',gridTemplateColumns:'1.5fr 1fr 1fr 1fr',gap:32 }} className="mobile-grid-2">
+        <div style={{ display:'flex',flexDirection:'column',gap:16 }}>
+          <p style={{ fontFamily:C.serif,fontSize:20,color:C.white,fontStyle:'italic' }}>Shopmorethanrubies</p>
+          <p style={{ fontFamily:C.body,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.9,maxWidth:220 }}>Intentionally chosen objects for homes that feel like you.</p>
+          <div style={{ display:'flex' }}>
+            <input placeholder="Your email" style={{ flex:1,padding:'9px 12px',background:'rgba(255,255,255,0.07)',border:`1px solid rgba(255,255,255,0.12)`,color:C.white,fontFamily:C.sans,fontSize:10,outline:'none',minWidth:0 }} />
+            <button style={{ padding:'9px 16px',background:C.crimson,border:'none',color:C.white,fontSize:12,cursor:'pointer',transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.background=C.red} onMouseLeave={e=>e.currentTarget.style.background=C.crimson}>→</button>
+          </div>
+        </div>
+        {[
+          ['Shop',    ['All Products','Ceramics','Glassware','Lighting','Vases','Mirrors','Travel','Accessories']],
+          ['Company', ['Our Story','Shipping & Returns','FAQ','Contact Us']],
+          ['Follow',  ['Instagram','TikTok','Pinterest','WhatsApp']],
+        ].map(([hd,links])=>(
+          <div key={hd}>
+            <p style={{ fontFamily:C.sans,fontSize:9,color:'rgba(255,255,255,0.35)',letterSpacing:'0.22em',textTransform:'uppercase',marginBottom:14 }}>{hd}</p>
+            <div style={{ display:'flex',flexDirection:'column',gap:9 }}>
+              {links.map(l=><a key={l} href="#" onClick={e=>{ e.preventDefault(); if(hd==='Shop') setPage('shop'); }} style={{ fontFamily:C.sans,fontSize:11,color:'rgba(255,255,255,0.48)',textDecoration:'none' }}>{l}</a>)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop:48,paddingTop:24,borderTop:'1px solid rgba(255,255,255,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12 }}>
+        <p style={{ fontFamily:C.sans,fontSize:10,color:'rgba(255,255,255,0.25)',letterSpacing:'0.08em' }}>© 2026 Shopmorethanrubies. All rights reserved.</p>
+        <a href="admin.html" style={{ fontFamily:C.sans,fontSize:10,color:'rgba(255,255,255,0.2)',letterSpacing:'0.12em',textTransform:'uppercase',textDecoration:'none',transition:'color 0.15s' }} onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,0.5)'} onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.2)'}>Admin</a>
+      </div>
+    </footer>
+  );
+}
+
+/* ── App root ── */
+function App() {
+  const [page, setPage] = useState('home');
+  const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
+  const [checkout, setCheckout] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(PRODUCTS[0]);
+  const cart = useCart();
+  const wishlist = useWishlist();
+
+  useEffect(()=>{ window.scrollTo(0,0); },[page]);
+
+  const handleCheckout = () => { setCartOpen(false); setCheckout(true); };
+  const handleCheckoutComplete = () => { setCheckout(false); setPage('home'); };
+
+  const navigateTo = (p) => { setPage(p); setCartOpen(false); setWishlistOpen(false); };
+
+  if (checkout) return (
+    <>
+      <Nav cartCount={cart.count} wishlistCount={wishlist.count} onCartOpen={()=>setCartOpen(true)} onWishlistOpen={()=>setWishlistOpen(true)} setPage={navigateTo} />
+      <Checkout cart={cart} onBack={()=>setCheckout(false)} onComplete={handleCheckoutComplete} />
+    </>
+  );
+
+  return (
+    <>
+      <PromoBanner />
+      <Nav cartCount={cart.count} wishlistCount={wishlist.count} onCartOpen={()=>setCartOpen(true)} onWishlistOpen={()=>setWishlistOpen(true)} setPage={navigateTo} />
+      <CartDrawer open={cartOpen} onClose={()=>setCartOpen(false)} cart={cart} onCheckout={handleCheckout} />
+      <WishlistDrawer open={wishlistOpen} onClose={()=>setWishlistOpen(false)} wishlist={wishlist} cart={cart} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
+
+      <main>
+        {page==='home'&&<>
+          <Hero setPage={navigateTo} />
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} />
+          <About />
+          <Footer setPage={navigateTo} />
+        </>}
+        {page==='shop'&&<>
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} />
+          <Footer setPage={navigateTo} />
+        </>}
+        {page==='product'&&<>
+          <ProductPage product={selectedProduct} cart={cart} wishlist={wishlist} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
+          <Footer setPage={navigateTo} />
+        </>}
+        {page==='about'&&<>
+          <About />
+          <Footer setPage={navigateTo} />
+        </>}
+      </main>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

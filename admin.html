@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SMTR Admin — Product Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #1a0808; font-family: 'Jost', sans-serif; }
+input, textarea, select { font-family: 'Jost', sans-serif; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #ede1d8; }
+::-webkit-scrollbar-thumb { background: #c04040; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+const C = {
+  bg:      '#fdf8f5',
+  cream:   '#ede1d8',
+  panel:   '#f5ede8',
+  rule:    '#e0cfc6',
+  ink:     '#a81111',
+  inkDark: '#6a0a0a',
+  mid:     '#b89080',
+  white:   '#fdf8f5',
+  red:     '#e9201f',
+  sans:    "'Jost', sans-serif",
+  serif:   "'Playfair Display', Georgia, serif",
+};
+
+const INITIAL_PRODUCTS = [
+  { id:1,  name:'Bubble Cup & Saucer',  price:'42', category:'Ceramics',    tag:'Bestseller', variants:['Blush Pink','Ivory','Sage'],            desc:'Hand-glazed pink ceramic cup and cloud-shaped bubble saucer.',        img:'uploads/IMG_8507_2.png' },
+  { id:2,  name:'Ripple Glass Tumbler', price:'38', category:'Glassware',   tag:'New',        variants:['Clear','Frosted','Smoke'],              desc:'Wavy borosilicate glass with bamboo lid and glass straw.',            img:'uploads/IMG_8468.png' },
+  { id:3,  name:'Mushroom Lamp',        price:'88', category:'Lighting',    tag:'New',        variants:['Pink Swirl','Ivory','Sage'],            desc:'Swirled pink glass inspired by vintage Murano. Warm bedside glow.',  img:'uploads/IMG_8562.png' },
+  { id:4,  name:'Donut Ring Vase',      price:'52', category:'Vases',       tag:'New',        variants:['White','Blush','Charcoal'],             desc:'Matte white ceramic ring vase. Sculptural and minimal.',             img:'uploads/IMG_8580.png' },
+  { id:5,  name:'Travel Bottles Set',   price:'28', category:'Travel',      tag:'',           variants:['Pink','Clear','Black'],                 desc:'Pink-capped travel bottles. TSA-friendly, 7–10 day supply.',         img:'uploads/IMG_6086.JPG' },
+  { id:6,  name:'Ribbed Vase',          price:'48', category:'Vases',       tag:'',           variants:['White Natural','White Black'],          desc:'Textured white ceramic with jute collar. Perfect bedside or shelf.', img:'uploads/IMG_8574.png' },
+  { id:7,  name:'Heart Mirror',         price:'45', category:'Mirrors',     tag:'',           variants:['White','Pink'],                         desc:'White beaded heart frame mirror. Vanity or wall display.',           img:'uploads/IMG_8562.png' },
+  { id:8,  name:'Pink Makeup Bag',      price:'35', category:'Accessories', tag:'',           variants:['Blush Pink','Ivory'],                   desc:'Saffiano PU leather makeup bag with gold zipper. Spacious and chic.',img:'uploads/IMG_7013.png' },
+  { id:9,  name:'Velvet Jewelry Box',   price:'65', category:'Organizers',  tag:'Limited',    variants:['Burgundy','Black','Blush'],             desc:'Velvet-lined jewelry box with compartments.',                        img:null },
+  { id:10, name:'Cosmetic Organizer',   price:'38', category:'Organizers',  tag:'',           variants:['Clear','White'],                        desc:'Clear acrylic cosmetic rack organizer.',                             img:null },
+  { id:11, name:'Silk Hair Ties',       price:'20', category:'Accessories', tag:'',           variants:['Nude','Black','Blush'],                 desc:'Set of 8 silk-finish hair ties in neutral tones.',                   img:null },
+];
+
+const CATEGORIES = ['All','Ceramics','Glassware','Lighting','Vases','Mirrors','Travel','Organizers','Accessories'];
+const TAGS = ['','New','Bestseller','Limited','Sale'];
+
+function readFileAsDataURL(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ── Image drop zone ── */
+function ImageDropZone({ currentImg, onImageChange }) {
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef();
+
+  const handleFile = useCallback(async file => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const dataUrl = await readFileAsDataURL(file);
+    onImageChange(dataUrl);
+  }, [onImageChange]);
+
+  return (
+    <div
+      onClick={()=>inputRef.current.click()}
+      onDragOver={e=>{ e.preventDefault(); setDragging(true); }}
+      onDragLeave={()=>setDragging(false)}
+      onDrop={e=>{ e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]); }}
+      style={{ width:'100%',height:200,border:`2px dashed ${dragging?C.red:C.rule}`,borderRadius:4,background:dragging?'#fdeae8':C.cream,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',cursor:'pointer',overflow:'hidden',position:'relative',transition:'all 0.15s' }}
+    >
+      {currentImg?(
+        <>
+          <img src={currentImg} alt="" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
+          <div style={{ position:'absolute',inset:0,background:'rgba(168,17,17,0)',display:'flex',alignItems:'center',justifyContent:'center',transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(168,17,17,0.55)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(168,17,17,0)'}
+          >
+            <span style={{ fontFamily:C.sans,fontSize:11,letterSpacing:'0.16em',textTransform:'uppercase',color:'white',opacity:0,transition:'opacity 0.15s',pointerEvents:'none' }}
+              onMouseEnter={e=>e.currentTarget.style.opacity=1}
+              onMouseLeave={e=>e.currentTarget.style.opacity=0}
+            >Replace Image</span>
+          </div>
+        </>
+      ):(
+        <div style={{ textAlign:'center',pointerEvents:'none' }}>
+          <div style={{ fontSize:28,marginBottom:8,color:C.mid }}>+</div>
+          <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid,letterSpacing:'0.12em',textTransform:'uppercase' }}>Drop image or click to upload</p>
+          <p style={{ fontFamily:C.sans,fontSize:10,color:C.rule,marginTop:4 }}>JPG, PNG, WEBP</p>
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e=>handleFile(e.target.files[0])} />
+    </div>
+  );
+}
+
+/* ── Edit modal ── */
+function EditModal({ product, onSave, onClose }) {
+  const [form, setForm] = useState({ ...product });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  const inputStyle = { width:'100%',padding:'10px 12px',border:`1px solid ${C.rule}`,background:C.white,fontFamily:C.sans,fontSize:13,color:'#2a0808',outline:'none',borderRadius:2 };
+
+  const variantString = Array.isArray(form.variants) ? form.variants.join(', ') : (form.variants||'');
+  const handleVariantChange = e => set('variants', e.target.value.split(',').map(v=>v.trim()).filter(Boolean));
+
+  return (
+    <div style={{ position:'fixed',inset:0,background:'rgba(26,8,8,0.6)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{ background:C.white,width:520,maxHeight:'90vh',overflowY:'auto',padding:36,display:'flex',flexDirection:'column',gap:20,borderRadius:2 }}>
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+          <h2 style={{ fontFamily:C.serif,fontSize:22,fontWeight:400,color:C.inkDark,fontStyle:'italic' }}>
+            {product.id==='new'?'Add Product':'Edit Product'}
+          </h2>
+          <button onClick={onClose} style={{ background:'none',border:'none',fontSize:22,color:C.mid,cursor:'pointer',padding:'4px 8px' }}>×</button>
+        </div>
+
+        <div>
+          <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Product Image</label>
+          <ImageDropZone currentImg={form.img} onImageChange={v=>set('img',v)} />
+        </div>
+
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:16 }}>
+          <div>
+            <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Product Name</label>
+            <input style={inputStyle} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="e.g. Bubble Cup" />
+          </div>
+          <div>
+            <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Price ($)</label>
+            <input style={inputStyle} value={form.price} onChange={e=>set('price',e.target.value)} placeholder="e.g. 42" />
+          </div>
+        </div>
+
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:16 }}>
+          <div>
+            <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Category</label>
+            <select style={{ ...inputStyle,appearance:'none' }} value={form.category} onChange={e=>set('category',e.target.value)}>
+              {CATEGORIES.filter(c=>c!=='All').map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Badge</label>
+            <select style={{ ...inputStyle,appearance:'none' }} value={form.tag} onChange={e=>set('tag',e.target.value)}>
+              {TAGS.map(t=><option key={t} value={t}>{t||'— None —'}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>
+            Variants <span style={{ fontWeight:300,textTransform:'none',letterSpacing:0 }}>(comma-separated)</span>
+          </label>
+          <input style={inputStyle} value={variantString} onChange={handleVariantChange} placeholder="e.g. Blush Pink, Ivory, Sage" />
+          <div style={{ display:'flex',flexWrap:'wrap',gap:4,marginTop:6 }}>
+            {Array.isArray(form.variants)&&form.variants.length>0 ? form.variants.map((v,i)=>(
+              <span key={i} style={{ padding:'3px 10px',background:C.cream,fontFamily:C.sans,fontSize:10,color:'#2a0808' }}>{v}</span>
+            )):<span style={{ fontFamily:C.sans,fontSize:10,color:C.mid,fontStyle:'italic' }}>No variants yet</span>}
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid,display:'block',marginBottom:6 }}>Description</label>
+          <textarea style={{ ...inputStyle,height:80,resize:'vertical' }} value={form.desc} onChange={e=>set('desc',e.target.value)} placeholder="Product description…" />
+        </div>
+
+        <div style={{ display:'flex',gap:12,marginTop:4 }}>
+          <button onClick={()=>onSave(form)} style={{ flex:1,padding:'13px',background:C.ink,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer',transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.background=C.inkDark} onMouseLeave={e=>e.currentTarget.style.background=C.ink}>
+            Save Product
+          </button>
+          <button onClick={onClose} style={{ padding:'13px 24px',background:'transparent',color:C.mid,border:`1px solid ${C.rule}`,fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer' }}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Product card ── */
+function ProductCard({ product, onEdit, onDelete }) {
+  const [hovering, setHovering] = useState(false);
+  return (
+    <div onMouseEnter={()=>setHovering(true)} onMouseLeave={()=>setHovering(false)}
+      style={{ background:C.white,border:`1px solid ${hovering?C.rule:'transparent'}`,transition:'all 0.15s',position:'relative' }}>
+      <div style={{ height:200,background:C.cream,overflow:'hidden',position:'relative' }}>
+        {product.img?(
+          <img src={product.img} alt={product.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
+        ):(
+          <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
+            <span style={{ fontFamily:C.sans,fontSize:10,color:C.mid,letterSpacing:'0.12em',textTransform:'uppercase' }}>No Image</span>
+          </div>
+        )}
+        {product.tag&&<div style={{ position:'absolute',top:10,left:10,padding:'4px 10px',background:C.ink,fontFamily:C.sans,fontSize:8,letterSpacing:'0.18em',color:'white',textTransform:'uppercase' }}>{product.tag}</div>}
+        <div style={{ position:'absolute',inset:0,background:'rgba(168,17,17,0.88)',display:'flex',alignItems:'center',justifyContent:'center',gap:12,opacity:hovering?1:0,transition:'opacity 0.18s' }}>
+          <button onClick={()=>onEdit(product)} style={{ padding:'9px 22px',background:'white',border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',color:C.ink,cursor:'pointer' }}>Edit</button>
+          <button onClick={()=>onDelete(product.id)} style={{ padding:'9px 22px',background:'transparent',border:'1px solid rgba(255,255,255,0.5)',fontFamily:C.sans,fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',color:'white',cursor:'pointer' }}>Remove</button>
+        </div>
+      </div>
+      <div style={{ padding:'14px 16px 18px' }}>
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'baseline' }}>
+          <p style={{ fontFamily:"'Ovo', Georgia, serif",fontSize:15,color:'#2a0808' }}>{product.name}</p>
+          <p style={{ fontFamily:C.serif,fontSize:14,color:C.ink }}>${product.price}</p>
+        </div>
+        <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:3,letterSpacing:'0.08em' }}>{product.category}</p>
+        {Array.isArray(product.variants)&&product.variants.length>0&&(
+          <div style={{ display:'flex',flexWrap:'wrap',gap:3,marginTop:6 }}>
+            {product.variants.slice(0,3).map((v,i)=>(
+              <span key={i} style={{ padding:'2px 7px',background:C.cream,fontFamily:C.sans,fontSize:9,color:'#5a3030' }}>{v}</span>
+            ))}
+            {product.variants.length>3&&<span style={{ fontFamily:C.sans,fontSize:9,color:C.mid }}>+{product.variants.length-3}</span>}
+          </div>
+        )}
+        <p style={{ fontFamily:C.sans,fontSize:11,color:'#8a6050',marginTop:6,lineHeight:1.6,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden' }}>{product.desc}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── App ── */
+function App() {
+  const [products, setProducts] = useState(()=>{
+    try { const s=localStorage.getItem('smtr_products'); return s?JSON.parse(s):INITIAL_PRODUCTS; } catch { return INITIAL_PRODUCTS; }
+  });
+  const [editing, setEditing] = useState(null);
+  const [filter, setFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState('');
+
+  const save = prods => {
+    setProducts(prods);
+    try { localStorage.setItem('smtr_products', JSON.stringify(prods)); } catch {}
+  };
+
+  const showToast = msg => { setToast(msg); setTimeout(()=>setToast(''), 2200); };
+
+  const handleSave = updated => {
+    if (updated.id==='new') {
+      const newId = Math.max(...products.map(p=>p.id),0)+1;
+      save([...products, {...updated,id:newId}]);
+      showToast('Product added');
+    } else {
+      save(products.map(p=>p.id===updated.id?updated:p));
+      showToast('Changes saved');
+    }
+    setEditing(null);
+  };
+
+  const handleDelete = id => { save(products.filter(p=>p.id!==id)); showToast('Product removed'); };
+
+  const filtered = products.filter(p=>{
+    const matchCat  = filter==='All'||p.category===filter;
+    const matchSrch = p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat&&matchSrch;
+  });
+
+  return (
+    <div style={{ minHeight:'100vh',background:C.bg,display:'flex',flexDirection:'column' }}>
+      {/* Header */}
+      <header style={{ background:'#1a0808',padding:'0 40px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ display:'flex',alignItems:'center',gap:24 }}>
+          <p style={{ fontFamily:C.serif,fontSize:18,color:'#fdf8f5',fontStyle:'italic' }}>smtr</p>
+          <span style={{ color:'rgba(255,255,255,0.15)',fontSize:16 }}>|</span>
+          <p style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.22em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)' }}>Admin Portal</p>
+        </div>
+        <div style={{ display:'flex',gap:20,alignItems:'center' }}>
+          <a href="index.html" style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',textDecoration:'none',transition:'color 0.15s' }} onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,0.8)'} onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.4)'}>
+            ← View Store
+          </a>
+          <div style={{ width:7,height:7,borderRadius:'50%',background:'#4caf50' }} />
+          <span style={{ fontFamily:C.sans,fontSize:10,color:'rgba(255,255,255,0.3)',letterSpacing:'0.1em' }}>Live</span>
+        </div>
+      </header>
+
+      {/* Stats */}
+      <div style={{ background:C.cream,borderBottom:`1px solid ${C.rule}`,padding:'0 40px',display:'flex',gap:0,overflowX:'auto' }}>
+        {[
+          {label:'Total Products',   value:products.length},
+          {label:'With Images',      value:products.filter(p=>p.img).length},
+          {label:'Missing Images',   value:products.filter(p=>!p.img).length},
+          {label:'Categories',       value:[...new Set(products.map(p=>p.category))].length},
+        ].map((s,i)=>(
+          <div key={i} style={{ padding:'14px 32px 14px 0',marginRight:32,borderRight:i<3?`1px solid ${C.rule}`:'none',flexShrink:0 }}>
+            <p style={{ fontFamily:C.serif,fontSize:22,fontWeight:700,color:C.ink }}>{s.value}</p>
+            <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',marginTop:2 }}>{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar */}
+      <div style={{ padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap' }}>
+        <div style={{ display:'flex',gap:8,flexWrap:'wrap' }}>
+          {CATEGORIES.map(cat=>(
+            <button key={cat} onClick={()=>setFilter(cat)} style={{ padding:'7px 16px',border:`1px solid ${filter===cat?C.ink:C.rule}`,background:filter===cat?C.ink:'transparent',color:filter===cat?C.white:C.mid,fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer',transition:'all 0.15s' }}>{cat}</button>
+          ))}
+        </div>
+        <div style={{ display:'flex',gap:12,alignItems:'center' }}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search products…"
+            style={{ padding:'9px 14px',border:`1px solid ${C.rule}`,background:C.white,fontFamily:C.sans,fontSize:12,color:'#2a0808',outline:'none',width:200 }} />
+          <button onClick={()=>setEditing({id:'new',name:'',price:'',category:'Ceramics',tag:'',variants:[],desc:'',img:null})}
+            style={{ padding:'10px 24px',background:C.ink,color:C.white,border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer',whiteSpace:'nowrap',transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.background=C.inkDark} onMouseLeave={e=>e.currentTarget.style.background=C.ink}>
+            + Add Product
+          </button>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div style={{ padding:'0 40px 60px',flex:1 }}>
+        {filtered.length===0?(
+          <div style={{ textAlign:'center',padding:'80px 0' }}>
+            <p style={{ fontFamily:C.serif,fontSize:24,fontStyle:'italic',color:C.mid }}>No products found</p>
+          </div>
+        ):(
+          <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:20 }}>
+            {filtered.map(p=>(
+              <ProductCard key={p.id} product={p} onEdit={setEditing} onDelete={handleDelete} />
+            ))}
+            {/* Add new tile */}
+            <div onClick={()=>setEditing({id:'new',name:'',price:'',category:'Ceramics',tag:'',variants:[],desc:'',img:null})}
+              style={{ border:`2px dashed ${C.rule}`,background:'transparent',minHeight:280,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,cursor:'pointer',transition:'border-color 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=C.ink}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=C.rule}
+            >
+              <span style={{ fontSize:32,color:C.rule }}>+</span>
+              <p style={{ fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',color:C.mid }}>Add Product</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {editing&&<EditModal product={editing} onSave={handleSave} onClose={()=>setEditing(null)} />}
+
+      {toast&&(
+        <div style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',background:C.inkDark,color:C.white,padding:'12px 28px',fontFamily:C.sans,fontSize:11,letterSpacing:'0.14em',textTransform:'uppercase',zIndex:2000,borderRadius:2,boxShadow:'0 4px 20px rgba(0,0,0,0.3)' }}>{toast}</div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: #1a0808; font-family: 'Jost', sans-serif; }
+html, body { height: 100%; background: #f5ede8; font-family: 'Jost', sans-serif; }
 input, textarea, select { font-family: 'Jost', sans-serif; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #ede1d8; }
@@ -30,7 +30,7 @@ const C = {
   panel:   '#f5ede8',
   rule:    '#e0cfc6',
   ink:     '#a81111',
-  inkDark: '#6a0a0a',
+  inkDark: '#e9201f',
   mid:     '#b89080',
   white:   '#fdf8f5',
   red:     '#e9201f',
@@ -118,20 +118,20 @@ function LoginScreen({ onLogin }) {
   const inp = { width:'100%', padding:'12px 14px', border:'1px solid #d8c4b8', background:'#fdf8f5', fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2, transition:'border-color 0.15s' };
 
   return (
-    <div style={{ minHeight:'100vh', background:'#1a0808', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+    <div style={{ minHeight:'100vh', background:'#f0e4dc', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
       <div style={{ width:'100%', maxWidth:420 }}>
         <div style={{ textAlign:'center', marginBottom:40 }}>
-          <p style={{ fontFamily:C.serif, fontSize:34, color:'#fdf8f5', fontStyle:'italic', letterSpacing:'0.02em' }}>smtr</p>
-          <p style={{ fontFamily:C.sans, fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.28)', marginTop:6 }}>Admin Portal</p>
+          <p style={{ fontFamily:C.serif, fontSize:34, color:'#a81111', fontStyle:'italic', letterSpacing:'0.02em' }}>smtr</p>
+          <p style={{ fontFamily:C.sans, fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'#b89080', marginTop:6 }}>Admin Portal</p>
         </div>
 
         {firstRun && (
-          <div style={{ background:'rgba(232,200,80,0.1)', border:'1px solid rgba(232,200,80,0.28)', borderRadius:4, padding:'16px 20px', marginBottom:24 }}>
-            <p style={{ fontFamily:C.sans, fontSize:10, color:'#e8c860', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:500, marginBottom:8 }}>First-time setup</p>
-            <p style={{ fontFamily:C.sans, fontSize:12, color:'rgba(255,255,255,0.55)', lineHeight:1.8 }}>
+          <div style={{ background:'#fff8e8', border:'1px solid #f0d88a', borderRadius:4, padding:'16px 20px', marginBottom:24 }}>
+            <p style={{ fontFamily:C.sans, fontSize:10, color:'#8a6800', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:500, marginBottom:8 }}>First-time setup</p>
+            <p style={{ fontFamily:C.sans, fontSize:12, color:'#5a4800', lineHeight:1.8 }}>
               Default superadmin account created.<br/>
-              Username: <strong style={{ color:'#e8c860' }}>superadmin</strong>&nbsp;&nbsp;·&nbsp;&nbsp;Password: <strong style={{ color:'#e8c860' }}>{DEFAULT_PW}</strong><br/>
-              <span style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>Change your password after logging in.</span>
+              Username: <strong style={{ color:'#8a6800' }}>superadmin</strong>&nbsp;&nbsp;·&nbsp;&nbsp;Password: <strong style={{ color:'#8a6800' }}>{DEFAULT_PW}</strong><br/>
+              <span style={{ fontSize:11, color:'#a07830' }}>Change your password after logging in.</span>
             </p>
           </div>
         )}
@@ -157,7 +157,7 @@ function LoginScreen({ onLogin }) {
 
           <button type="submit" disabled={loading}
             style={{ padding:'14px', background: loading ? '#c04040' : '#a81111', color:'#fdf8f5', border:'none', fontFamily:C.sans, fontSize:10, letterSpacing:'0.24em', textTransform:'uppercase', cursor: loading ? 'default' : 'pointer', borderRadius:2, transition:'background 0.15s', marginTop:4 }}
-            onMouseEnter={e=>{ if(!loading) e.currentTarget.style.background='#6a0a0a'; }}
+            onMouseEnter={e=>{ if(!loading) e.currentTarget.style.background='#e9201f'; }}
             onMouseLeave={e=>{ if(!loading) e.currentTarget.style.background='#a81111'; }}>
             {loading ? 'Signing in…' : 'Sign In →'}
           </button>
@@ -333,7 +333,7 @@ function TeamManager({ currentUser, showToast }) {
 }
 
 /* ── Image drop zone ── */
-function ImageDropZone({ currentImg, onImageChange }) {
+function ImageDropZone({ currentImg, onImageChange, compact=false }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef();
 
@@ -342,12 +342,14 @@ function ImageDropZone({ currentImg, onImageChange }) {
     onImageChange(await readFileAsDataURL(file));
   }, [onImageChange]);
 
+  const h = compact ? 110 : 200;
+
   return (
     <div onClick={()=>inputRef.current.click()}
       onDragOver={e=>{ e.preventDefault(); setDragging(true); }}
       onDragLeave={()=>setDragging(false)}
       onDrop={e=>{ e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]); }}
-      style={{ width:'100%', height:200, border:`2px dashed ${dragging?C.red:C.rule}`, borderRadius:4, background:dragging?'#fdeae8':C.cream, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', overflow:'hidden', position:'relative', transition:'all 0.15s' }}>
+      style={{ width:'100%', height:h, border:`2px dashed ${dragging?C.red:C.rule}`, borderRadius:4, background:dragging?'#fdeae8':C.cream, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', overflow:'hidden', position:'relative', transition:'all 0.15s' }}>
       {currentImg ? (
         <>
           <img src={currentImg} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center' }} />
@@ -356,14 +358,14 @@ function ImageDropZone({ currentImg, onImageChange }) {
             onMouseLeave={e=>e.currentTarget.style.background='rgba(168,17,17,0)'}>
             <span style={{ fontFamily:C.sans, fontSize:11, letterSpacing:'0.16em', textTransform:'uppercase', color:'white', opacity:0, transition:'opacity 0.15s', pointerEvents:'none' }}
               onMouseEnter={e=>e.currentTarget.style.opacity=1}
-              onMouseLeave={e=>e.currentTarget.style.opacity=0}>Replace Image</span>
+              onMouseLeave={e=>e.currentTarget.style.opacity=0}>Replace</span>
           </div>
         </>
       ) : (
-        <div style={{ textAlign:'center', pointerEvents:'none' }}>
-          <div style={{ fontSize:28, marginBottom:8, color:C.mid }}>+</div>
-          <p style={{ fontFamily:C.sans, fontSize:11, color:C.mid, letterSpacing:'0.12em', textTransform:'uppercase' }}>Drop image or click to upload</p>
-          <p style={{ fontFamily:C.sans, fontSize:10, color:C.rule, marginTop:4 }}>JPG, PNG, WEBP</p>
+        <div style={{ textAlign:'center', pointerEvents:'none', padding:'0 8px' }}>
+          <div style={{ fontSize: compact?20:28, marginBottom:6, color:C.mid }}>+</div>
+          {!compact && <p style={{ fontFamily:C.sans, fontSize:11, color:C.mid, letterSpacing:'0.12em', textTransform:'uppercase' }}>Drop image or click to upload</p>}
+          <p style={{ fontFamily:C.sans, fontSize:10, color:C.rule, marginTop:4 }}>JPG · PNG · WEBP</p>
         </div>
       )}
       <input ref={inputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e=>handleFile(e.target.files[0])} />
@@ -373,66 +375,143 @@ function ImageDropZone({ currentImg, onImageChange }) {
 
 /* ── Edit modal ── */
 function EditModal({ product, onSave, onClose }) {
-  const [form, setForm] = useState({ ...product });
+  const [form, setForm]             = useState({ variantImages:{}, ...product });
+  const [variantInput, setVariantInput] = useState('');
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const inputStyle = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2 };
-  const variantString = Array.isArray(form.variants) ? form.variants.join(', ') : (form.variants||'');
+
+  const inp = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2 };
+  const lbl = { fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 };
+
+  const addVariant = () => {
+    const v = variantInput.trim();
+    if (!v) return;
+    const existing = form.variants || [];
+    if (!existing.includes(v)) set('variants', [...existing, v]);
+    setVariantInput('');
+  };
+
+  const removeVariant = v => {
+    set('variants', (form.variants||[]).filter(x => x !== v));
+    const imgs = { ...(form.variantImages||{}) };
+    delete imgs[v];
+    set('variantImages', imgs);
+  };
+
+  const setVariantImg = (v, img) =>
+    set('variantImages', { ...(form.variantImages||{}), [v]: img });
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(26,8,8,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:C.white, width:520, maxHeight:'90vh', overflowY:'auto', padding:36, display:'flex', flexDirection:'column', gap:20, borderRadius:2 }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(42,8,8,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{ background:C.white, width:580, maxHeight:'92vh', overflowY:'auto', padding:36, display:'flex', flexDirection:'column', gap:22, borderRadius:2 }}>
+
+        {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <h2 style={{ fontFamily:C.serif, fontSize:22, fontWeight:400, color:C.inkDark, fontStyle:'italic' }}>{product.id==='new'?'Add Product':'Edit Product'}</h2>
+          <h2 style={{ fontFamily:C.serif, fontSize:22, fontWeight:400, color:'#2a0808', fontStyle:'italic' }}>{product.id==='new'?'Add Product':'Edit Product'}</h2>
           <button onClick={onClose} style={{ background:'none', border:'none', fontSize:22, color:C.mid, cursor:'pointer', padding:'4px 8px' }}>×</button>
         </div>
+
+        {/* Main image */}
         <div>
-          <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Product Image</label>
+          <label style={lbl}>Main Product Image</label>
           <ImageDropZone currentImg={form.img} onImageChange={v=>set('img',v)} />
         </div>
+
+        {/* Name + Price */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
           <div>
-            <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Product Name</label>
-            <input style={inputStyle} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="e.g. Bubble Cup" />
+            <label style={lbl}>Product Name</label>
+            <input style={inp} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="e.g. Bubble Cup" />
           </div>
           <div>
-            <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Price (₦)</label>
-            <input style={inputStyle} value={form.price} onChange={e=>set('price',e.target.value)} placeholder="e.g. 42000" />
+            <label style={lbl}>Price (₦)</label>
+            <input style={inp} value={form.price} onChange={e=>set('price',e.target.value)} placeholder="e.g. 42000" />
           </div>
         </div>
+
+        {/* Category + Badge */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
           <div>
-            <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Category</label>
-            <select style={{ ...inputStyle, appearance:'none' }} value={form.category} onChange={e=>set('category',e.target.value)}>
+            <label style={lbl}>Category</label>
+            <select style={{ ...inp, appearance:'none' }} value={form.category} onChange={e=>set('category',e.target.value)}>
               {CATEGORIES.filter(c=>c!=='All').map(c=><option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Badge</label>
-            <select style={{ ...inputStyle, appearance:'none' }} value={form.tag} onChange={e=>set('tag',e.target.value)}>
+            <label style={lbl}>Badge</label>
+            <select style={{ ...inp, appearance:'none' }} value={form.tag} onChange={e=>set('tag',e.target.value)}>
               {TAGS.map(t=><option key={t} value={t}>{t||'— None —'}</option>)}
             </select>
           </div>
         </div>
+
+        {/* Variants chip input */}
         <div>
-          <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>
-            Variants <span style={{ fontWeight:300, textTransform:'none', letterSpacing:0 }}>(comma-separated)</span>
-          </label>
-          <input style={inputStyle} value={variantString} onChange={e=>set('variants', e.target.value.split(',').map(v=>v.trim()).filter(Boolean))} placeholder="e.g. Blush Pink, Ivory, Sage" />
-          <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:6 }}>
-            {Array.isArray(form.variants)&&form.variants.length>0 ? form.variants.map((v,i)=>(
-              <span key={i} style={{ padding:'3px 10px', background:C.cream, fontFamily:C.sans, fontSize:10, color:'#2a0808' }}>{v}</span>
-            )):<span style={{ fontFamily:C.sans, fontSize:10, color:C.mid, fontStyle:'italic' }}>No variants yet</span>}
+          <label style={lbl}>Variants</label>
+          {(form.variants||[]).length > 0 && (
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+              {form.variants.map(v => (
+                <span key={v} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 8px 5px 12px', background:C.cream, borderRadius:20, fontFamily:C.sans, fontSize:11, color:'#2a0808' }}>
+                  {v}
+                  <button onClick={()=>removeVariant(v)} style={{ background:'none', border:'none', cursor:'pointer', color:C.mid, fontSize:15, lineHeight:1, padding:0, display:'flex', alignItems:'center' }}>×</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ display:'flex', gap:8 }}>
+            <input
+              style={{ ...inp, flex:1 }}
+              value={variantInput}
+              onChange={e=>setVariantInput(e.target.value)}
+              onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); addVariant(); } }}
+              placeholder="Type a variant name and press Enter or +"
+            />
+            <button onClick={addVariant}
+              style={{ padding:'10px 18px', background:C.ink, color:'white', border:'none', cursor:'pointer', fontFamily:C.sans, fontSize:20, fontWeight:300, borderRadius:2, lineHeight:1, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.background=C.inkDark}
+              onMouseLeave={e=>e.currentTarget.style.background=C.ink}>+</button>
           </div>
+          {(form.variants||[]).length===0 && (
+            <p style={{ fontFamily:C.sans, fontSize:10, color:C.mid, fontStyle:'italic', marginTop:6 }}>No variants yet — add one above</p>
+          )}
         </div>
+
+        {/* Variant images — only shown when variants exist */}
+        {(form.variants||[]).length > 0 && (
+          <div>
+            <label style={lbl}>Variant Images <span style={{ fontWeight:300, textTransform:'none', letterSpacing:0 }}>(one per variant)</span></label>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(130px,1fr))', gap:14 }}>
+              {form.variants.map(v => (
+                <div key={v}>
+                  <p style={{ fontFamily:C.sans, fontSize:10, color:'#2a0808', marginBottom:7, letterSpacing:'0.04em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{v}</p>
+                  <ImageDropZone
+                    compact
+                    currentImg={(form.variantImages||{})[v] || null}
+                    onImageChange={img=>setVariantImg(v, img)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Description */}
         <div>
-          <label style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 }}>Description</label>
-          <textarea style={{ ...inputStyle, height:80, resize:'vertical' }} value={form.desc} onChange={e=>set('desc',e.target.value)} placeholder="Product description…" />
+          <label style={lbl}>Description</label>
+          <textarea style={{ ...inp, height:80, resize:'vertical' }} value={form.desc} onChange={e=>set('desc',e.target.value)} placeholder="Product description…" />
         </div>
-        <div style={{ display:'flex', gap:12, marginTop:4 }}>
-          <button onClick={()=>onSave(form)} style={{ flex:1, padding:'13px', background:C.ink, color:C.white, border:'none', fontFamily:C.sans, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer', transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.background=C.inkDark} onMouseLeave={e=>e.currentTarget.style.background=C.ink}>
+
+        {/* Actions */}
+        <div style={{ display:'flex', gap:12 }}>
+          <button onClick={()=>onSave(form)}
+            style={{ flex:1, padding:'13px', background:C.ink, color:C.white, border:'none', fontFamily:C.sans, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer', transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.background=C.inkDark}
+            onMouseLeave={e=>e.currentTarget.style.background=C.ink}>
             Save Product
           </button>
-          <button onClick={onClose} style={{ padding:'13px 24px', background:'transparent', color:C.mid, border:`1px solid ${C.rule}`, fontFamily:C.sans, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer' }}>Cancel</button>
+          <button onClick={onClose}
+            style={{ padding:'13px 24px', background:'transparent', color:C.mid, border:`1px solid ${C.rule}`, fontFamily:C.sans, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer' }}>
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -590,14 +669,14 @@ function App() {
 
   const navBtn = (id, label) => (
     <button key={id} onClick={()=>setTab(id)}
-      style={{ background:'none', border:'none', padding:'0 4px 18px', fontFamily:C.sans, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color: tab===id ? 'white' : 'rgba(255,255,255,0.38)', cursor:'pointer', borderBottom: tab===id ? '2px solid #e9201f' : '2px solid transparent', transition:'color 0.15s, border-color 0.15s' }}>
+      style={{ background:'none', border:'none', padding:'0 4px 18px', fontFamily:C.sans, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color: tab===id ? 'white' : 'rgba(255,255,255,0.55)', cursor:'pointer', borderBottom: tab===id ? '2px solid white' : '2px solid transparent', transition:'color 0.15s, border-color 0.15s' }}>
       {label}
     </button>
   );
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, display:'flex', flexDirection:'column' }}>
-      <header style={{ background:'#1a0808', padding:'0 40px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'stretch', justifyContent:'space-between' }}>
+      <header style={{ background:'#a81111', padding:'0 40px', borderBottom:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'stretch', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:28 }}>
           <p style={{ fontFamily:C.serif, fontSize:18, color:'#fdf8f5', fontStyle:'italic' }}>smtr</p>
           <span style={{ color:'rgba(255,255,255,0.12)', fontSize:16 }}>|</span>
@@ -609,7 +688,7 @@ function App() {
         <div style={{ display:'flex', gap:20, alignItems:'center' }}>
           <a href="index.html" style={{ fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.35)', textDecoration:'none', transition:'color 0.15s' }} onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,0.75)'} onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.35)'}>← View Store</a>
           <span style={{ fontFamily:C.sans, fontSize:11, color:'rgba(255,255,255,0.3)', letterSpacing:'0.08em' }}>{session.username}</span>
-          {session.role==='superadmin' && <span style={{ padding:'3px 9px', background:'rgba(168,17,17,0.5)', fontFamily:C.sans, fontSize:8, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.6)', borderRadius:2 }}>Super Admin</span>}
+          {session.role==='superadmin' && <span style={{ padding:'3px 9px', background:'rgba(255,255,255,0.18)', fontFamily:C.sans, fontSize:8, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.85)', borderRadius:2 }}>Super Admin</span>}
           <button onClick={handleLogout}
             style={{ padding:'7px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.15)', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{ e.currentTarget.style.borderColor='rgba(255,255,255,0.4)'; e.currentTarget.style.color='white'; }}

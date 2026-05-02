@@ -4,9 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Shopmorethanrubies — Home & Lifestyle</title>
+<link rel="icon" type="image/png" href="uploads/shop more than rubies logo and brand mark - 4.PNG" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Ovo&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -355,7 +357,7 @@ function Hero({ setPage }) {
         </div>
         {/* Trust badges */}
         <div style={{ display:'flex',gap:20,flexWrap:'wrap',opacity:visible?1:0,transition:'opacity 0.6s 1.2s ease',marginTop:4 }}>
-          {['Quality Tested','Trusted by 1000+','Fez Delivery'].map(t=>(
+          {['Quality Tested','Trusted by many shoppers','Fez Delivery'].map(t=>(
             <span key={t} style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.14em',color:C.mid,textTransform:'uppercase',display:'flex',alignItems:'center',gap:6 }}>
               <span style={{ width:4,height:4,borderRadius:'50%',background:C.crimson,display:'inline-block' }} />{t}
             </span>
@@ -427,7 +429,7 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
                 onMouseLeave={e=>e.currentTarget.style.color=wishlist.has(product.id)?C.crimson:C.mid}
               >{wishlist.has(product.id)?'♥':'♡'}</button>
               <div className="card-img" style={{ height:220,overflow:'hidden',background:C.bg2 }}>
-                <img src={product.img} alt={product.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',display:'block' }} />
+                <img src={product.img} alt={product.name} loading="lazy" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',display:'block' }} />
               </div>
               <div className="card-overlay" style={{ position:'absolute',bottom:84,left:0,right:0,display:'flex',justifyContent:'center',opacity:0,padding:'0 16px' }}>
                 <button className="btn-primary" onClick={e=>handleQuickAdd(e,product)} style={{ width:'100%',padding:'10px',background:addedId===product.id?'#4caf50':C.crimson,color:'white',border:'none',fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',textTransform:'uppercase',transition:'background 0.2s ease',cursor:'pointer' }}>
@@ -552,7 +554,7 @@ function ProductPage({ product, cart, wishlist, setPage }) {
           {PRODUCTS.filter(p=>p.id!==product.id).slice(0,4).map(p=>(
             <div key={p.id} className="product-card" onClick={()=>{ setSelectedProduct && setSelectedProduct(p); setPage('product'); }} style={{ background:C.white,cursor:'pointer' }}>
               <div style={{ height:160,overflow:'hidden',background:C.bg }}>
-                <img src={p.img} alt={p.name} style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',transition:'transform 0.4s ease' }} />
+                <img src={p.img} alt={p.name} loading="lazy" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top',transition:'transform 0.4s ease' }} />
               </div>
               <div style={{ padding:'12px 14px 16px' }}>
                 <p style={{ fontFamily:C.body,fontSize:14,color:C.ink }}>{p.name}</p>
@@ -685,17 +687,36 @@ function Checkout({ cart, onBack, onComplete }) {
               <h2 style={{ fontFamily:C.serif,fontSize:28,fontStyle:'italic',color:C.ink }}>Payment</h2>
               <div style={{ padding:'12px 16px',background:'#f0faf0',border:'1px solid #c8e6c9',display:'flex',gap:10,alignItems:'center' }}>
                 <span style={{ color:'#4caf50',fontSize:14 }}>🔒</span>
-                <p style={{ fontFamily:C.sans,fontSize:11,color:'#2e7d32' }}>Your payment info is encrypted and secure</p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:'#2e7d32' }}>Secured by Paystack — card, bank transfer & USSD</p>
               </div>
-              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Card Number</label><input style={inputStyle} value={form.cardNum} onChange={e=>set('cardNum',e.target.value)} placeholder="4242 4242 4242 4242" onFocus={focusStyle} onBlur={blurStyle} /></div>
-              <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Name on Card</label><input style={inputStyle} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="Ada Okafor" onFocus={focusStyle} onBlur={blurStyle} /></div>
-              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14 }} className="mobile-grid-1">
-                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>Expiry</label><input style={inputStyle} value={form.expiry} onChange={e=>set('expiry',e.target.value)} placeholder="MM/YY" onFocus={focusStyle} onBlur={blurStyle} /></div>
-                <div><label style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.16em',color:C.mid,textTransform:'uppercase',display:'block',marginBottom:6 }}>CVV</label><input style={inputStyle} value={form.cvv} onChange={e=>set('cvv',e.target.value)} placeholder="•••" onFocus={focusStyle} onBlur={blurStyle} /></div>
+              <div style={{ padding:'32px',background:C.bg2,display:'flex',flexDirection:'column',alignItems:'center',gap:16,textAlign:'center' }}>
+                <img src="https://website-v3-assets.s3.amazonaws.com/assets/img/hero/Paystack-HeroImage-resize.png" alt="Paystack" style={{ height:32,objectFit:'contain' }} onError={e=>e.target.style.display='none'} />
+                <p style={{ fontFamily:C.body,fontSize:14,color:C.mid,lineHeight:1.8 }}>
+                  Pay securely with your debit card, credit card, bank transfer, or USSD.
+                </p>
+                <p style={{ fontFamily:C.sans,fontSize:11,color:C.mid }}>
+                  Amount: <strong style={{ color:C.ink,fontFamily:C.serif,fontSize:16 }}>${(cart.total*1.08).toFixed(2)}</strong>
+                </p>
               </div>
               <div style={{ display:'flex',gap:12,marginTop:8 }}>
                 <button onClick={()=>setStep(2)} style={{ padding:'14px 24px',background:'transparent',color:C.mid,border:`1px solid ${C.rule}`,fontFamily:C.sans,fontSize:10,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer' }}>← Back</button>
-                <button className="btn-primary" onClick={()=>setStep(4)} style={{ flex:1,padding:'14px',background:C.crimson,color:C.white,border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer' }}>Place Order →</button>
+                <button className="btn-primary" onClick={()=>{
+                  if(typeof PaystackPop==='undefined'){ alert('Paystack is loading, please try again.'); return; }
+                  const handler = PaystackPop.setup({
+                    key: 'pk_live_REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY',
+                    email: form.email || 'customer@shopmorethanrubies.com',
+                    amount: Math.round(cart.total * 1.08 * 100),
+                    currency: 'NGN',
+                    ref: 'SMTR-' + Date.now(),
+                    metadata: { name: `${form.first} ${form.last}`, phone: form.phone },
+                    onClose: ()=>{},
+                    callback: ()=>setStep(4),
+                  });
+                  handler.openIframe();
+                }} style={{ flex:1,padding:'14px',background:'#00c3f7',color:'white',border:'none',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer',transition:'background 0.15s' }}
+                  onMouseEnter={e=>e.currentTarget.style.background='#00a8d4'}
+                  onMouseLeave={e=>e.currentTarget.style.background='#00c3f7'}
+                >Pay with Paystack →</button>
               </div>
             </div>
           )}
@@ -766,12 +787,30 @@ function Footer({ setPage }) {
         {[
           ['Shop',    ['All Products','Ceramics','Glassware','Lighting','Vases','Mirrors','Travel','Accessories']],
           ['Company', ['Our Story','Shipping & Returns','FAQ','Contact Us']],
-          ['Follow',  ['Instagram','TikTok','Pinterest','WhatsApp']],
+          ['Follow',  [
+            { label:'Instagram', href:'https://instagram.com/shop.morethanrubies' },
+            { label:'TikTok',    href:'https://tiktok.com/@shop.morethanrubies' },
+            { label:'Pinterest', href:'#' },
+            { label:'WhatsApp',  href:'#' },
+          ]],
         ].map(([hd,links])=>(
           <div key={hd}>
             <p style={{ fontFamily:C.sans,fontSize:9,color:'rgba(255,255,255,0.35)',letterSpacing:'0.22em',textTransform:'uppercase',marginBottom:14 }}>{hd}</p>
             <div style={{ display:'flex',flexDirection:'column',gap:9 }}>
-              {links.map(l=><a key={l} href="#" onClick={e=>{ e.preventDefault(); if(hd==='Shop') setPage('shop'); }} style={{ fontFamily:C.sans,fontSize:11,color:'rgba(255,255,255,0.48)',textDecoration:'none' }}>{l}</a>)}
+              {links.map(l=>{
+                const isObj = typeof l === 'object';
+                const label = isObj ? l.label : l;
+                const href  = isObj ? l.href : '#';
+                const isExt = href.startsWith('http');
+                return (
+                  <a key={label} href={href}
+                    onClick={e=>{ if(!isExt){ e.preventDefault(); if(hd==='Shop') setPage('shop'); } }}
+                    target={isExt ? '_blank' : undefined}
+                    rel={isExt ? 'noopener noreferrer' : undefined}
+                    style={{ fontFamily:C.sans,fontSize:11,color:'rgba(255,255,255,0.48)',textDecoration:'none' }}
+                  >{label}</a>
+                );
+              })}
             </div>
           </div>
         ))}

@@ -462,7 +462,7 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist }) {
 }
 
 /* ── Product Page ── */
-function ProductPage({ product, cart, wishlist, setPage }) {
+function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct }) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);

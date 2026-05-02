@@ -209,7 +209,8 @@ function TeamManager({ currentUser, showToast }) {
     if ((await hashPassword(current)) !== me.passwordHash) { setPwErr('Current password is incorrect.'); return; }
     if (next.length < 6)   { setPwErr('New password must be at least 6 characters.'); return; }
     if (next !== confirm)  { setPwErr('New passwords do not match.'); return; }
-    saveAdmins(admins.map(a => a.username === currentUser.username ? { ...a, passwordHash: await hashPassword(next) } : a));
+    const newHash = await hashPassword(next);
+    saveAdmins(admins.map(a => a.username === currentUser.username ? { ...a, passwordHash: newHash } : a));
     refresh(); setShowPwPanel(false); setPwForm({ current:'', next:'', confirm:'' });
     showToast('Password updated');
   };

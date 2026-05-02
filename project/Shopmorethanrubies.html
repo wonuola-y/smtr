@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shopmorethanrubies — Design Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Ovo&family=Jost:wght@200;300;400&display=swap" rel="stylesheet" />
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #1a0808; }
+  body { font-family: 'Jost', sans-serif; }
+</style>
+</head>
+<body>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<script type="text/babel">
+
+/* ── Shared tokens ──────────────────────────────────── */
+const T = {
+  // Brand palette — Direction 1: Quiet
+  bg:       '#faf5f2',       // lightest cream tint
+  bg2:      '#ede1d8',       // logo bg cream
+  mid:      '#b89080',       // warm rose-grey
+  ink:      '#a81111',       // deep brand crimson
+  inkLight: '#c04040',       // mid-red
+  white:    '#fdf8f5',
+  rule:     '#e0cfc6',
+  accent:   '#e9201f',       // bright logo red
+  accentDk: '#a81111',       // deep crimson
+  serif:    "'Playfair Display', Georgia, serif",
+  body:     "'Ovo', Georgia, serif",
+  sans:     "'Jost', sans-serif",
+};
+
+/* ── Placeholder image component ───────────────────── */
+/* ── Product image map ──────────────────────────────── */
+const IMGS = {
+  cup:     'uploads/IMG_8507_2.png',
+  glass:   'uploads/IMG_8468.png',
+  lamp:    'uploads/IMG_8407.png',
+  donut:   'uploads/IMG_8580.png',
+  travel:  'uploads/IMG_6086.JPG',
+  ribbed:  'uploads/IMG_8574.png',
+  heart:   'uploads/IMG_8562.png',
+  bag:     'uploads/IMG_7013.png',
+};
+
+function Placeholder({ w = '100%', h = 240, label = 'product shot', img = null, style = {} }) {
+  if (img) {
+    return (
+      <div style={{ width: w, height: h, overflow: 'hidden', flexShrink: 0, background: '#ede1d8', ...style }}>
+        <img src={img} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      width: w, height: h, background: '#ede1d8', position: 'relative',
+      overflow: 'hidden', flexShrink: 0, ...style,
+    }}>
+      <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
+        <defs>
+          <pattern id={`stripe-${label.replace(/\s/g,'-')}`} patternUnits="userSpaceOnUse" width="16" height="16" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="16" stroke="#d4bfb4" strokeWidth="1"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#stripe-${label.replace(/\s/g,'-')})`}/>
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'Jost', sans-serif", fontSize: 10, color: '#b89080',
+        letterSpacing: '0.12em', textTransform: 'uppercase',
+        textAlign: 'center', padding: '8px',
+      }}>{label}</div>
+    </div>
+  );
+}
+
+/* ── Star Rating component ──────────────────────────── */
+const RATINGS_KEY = 'smtr_ratings';
+function getRatings() {
+  try { return JSON.parse(localStorage.getItem(RATINGS_KEY)) || {}; } catch { return {}; }
+}
+function saveRating(id, val) {
+  const r = getRatings(); r[id] = val;
+  try { localStorage.setItem(RATINGS_KEY, JSON.stringify(r)); } catch {}
+}
+
+function StarRating({ productId, initialRating = 0, color = '#a81111', size = 13 }) {
+  const stored = getRatings()[productId];
+  const [rating, setRating] = React.useState(stored || initialRating);
+  const [hover, setHover] = React.useState(0);
+  const handleClick = (val) => { setRating(val); saveRating(productId, val); };
+  return (
+    <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      {[1,2,3,4,5].map(i => (
+        <span key={i}
+          onClick={() => handleClick(i)}
+          onMouseEnter={() => setHover(i)}
+          onMouseLeave={() => setHover(0)}
+          style={{ color: i <= (hover || rating) ? color : '#d8c4b8', fontSize: size, cursor: 'pointer', lineHeight: 1, userSelect: 'none' }}
+        >★</span>
+      ))}
+      {rating > 0 && <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, color: '#b89080', marginLeft: 4, letterSpacing: '0.06em' }}>{rating}.0</span>}
+    </div>
+  );
+}
+
+/* --- DIRECTION 1: QUIET --- */
+
+function Q_Nav() {
+  return (
+    <nav style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '28px 48px', borderBottom: `1px solid ${T.rule}`,
+      background: T.white,
+    }}>
+      <div style={{ fontFamily: T.sans, fontSize: 10, letterSpacing: '0.22em', color: T.mid, textTransform: 'uppercase' }}>
+        Menu
+      </div>
+      <div style={{ fontFamily: T.serif, fontSize: 20, fontWeight: 300, color: T.ink, letterSpacing: '0.08em' }}>
+        Shopmorethanrubies
+      </div>
+      <div style={{ display: 'flex', gap: 28 }}>
+        {['Search', 'Cart (0)'].map(t => (
+          <span key={t} style={{ fontFamily: T.sans, fontSize: 10, letterSpacing: '0.22em', color: T.mid, textTransform: 'uppercase', cursor: 'pointer' }}>{t}</span>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function Q_Hero() {
+  return (
+    <section style={{
+      background: T.white, minHeight: 520,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '80px 48px', gap: 32, textAlign: 'center',
+    }}>
+      <p style={{ fontFamily: T.sans, fontSize: 10, letterSpacing: '0.28em', color: T.mid, textTransform: 'uppercase' }}>
+        New Arrivals — Spring 2026
+      </p>
+      <h1 style={{
+        fontFamily: T.serif, fontWeight: 700, fontSize: 72, lineHeight: 1.05,
+        color: T.ink, maxWidth: 520, fontStyle: 'italic',
+      }}>
+        Things that hold<br/>quiet beauty
+      </h1>
+      <p style={{ fontFamily: T.body, fontSize: 14, color: T.inkLight, maxWidth: 340, lineHeight: 1.9 }}>
+        Candles, vases, mirrors & more — curated for the spaces you live in
+      </p>
+      <button style={{
+        marginTop: 16, padding: '13px 40px', border: `1px solid ${T.ink}`,
+        background: 'transparent', fontFamily: T.sans, fontSize: 10,
+        letterSpacing: '0.2em', textTransform: 'uppercase', color: T.ink,
+        cursor: 'pointer',
+      }}>Explore Collection</button>
+    </section>
+  );
+}
+
+function Q_ShopGrid() {
+  const items = [
+    { name: 'Bubble Cup & Saucer', price: '$42', label: 'bubble cup', img: IMGS.cup },
+    { name: 'Ripple Glass Tumbler', price: '$38', label: 'glass tumbler', img: IMGS.glass },
+    { name: 'Mushroom Lamp', price: '$88', label: 'mushroom lamp', img: IMGS.lamp },
+    { name: 'Heart Mirror', price: '$45', label: 'heart mirror', img: IMGS.heart },
+    { name: 'Donut Ring Vase', price: '$52', label: 'donut vase', img: IMGS.donut },
+    { name: 'Pink Makeup Bag', price: '$35', label: 'makeup bag', img: IMGS.bag },
+  ];
+  return (
+    <section style={{ background: T.white, padding: '64px 48px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 48 }}>
+        <h2 style={{ fontFamily: T.serif, fontWeight: 400, fontSize: 36, color: T.ink, fontStyle: 'italic' }}>The Collection</h2>
+        <span style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, letterSpacing: '0.2em', textTransform: 'uppercase' }}>View all →</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px 28px' }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ cursor: 'pointer' }}>
+            <Placeholder h={220} label={item.label} img={item.img} />
+            <div style={{ padding: '16px 0 0' }}>
+              <p style={{ fontFamily: T.body, fontSize: 17, color: T.ink }}>{item.name}</p>
+              <div style={{ marginTop: 4 }}><StarRating productId={`t-${item.name}`} initialRating={[5,4,5,5,4,5][i]||4} color={T.ink} /></div>
+              <p style={{ fontFamily: T.sans, fontSize: 11, color: T.mid, marginTop: 5, letterSpacing: '0.08em' }}>{item.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Q_ProductPage() {
+  return (
+    <section style={{ background: T.white, padding: '64px 48px', display: 'flex', gap: 56 }}>
+      <div style={{ flex: '0 0 340px' }}>
+        <Placeholder h={420} label="mushroom lamp" img={IMGS.lamp} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+          {[{l:'glass tumbler',img:IMGS.glass},{l:'heart mirror',img:IMGS.heart},{l:'donut vase',img:IMGS.donut}].map((x,i) => <Placeholder key={i} w={80} h={80} label={x.l} img={x.img} />)}
+        </div>
+      </div>
+      <div style={{ flex: 1, paddingTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <p style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Mirrors</p>
+        <h2 style={{ fontFamily: T.serif, fontSize: 48, fontWeight: 700, color: T.ink, lineHeight: 1.0 }}>Mushroom Lamp</h2>
+        <div style={{ marginTop: 4 }}><StarRating productId="t-product-lamp" initialRating={5} color={T.ink} size={15} /></div>
+        <p style={{ fontFamily: T.serif, fontSize: 22, color: T.inkLight, fontWeight: 300 }}>$88</p>
+        <div style={{ width: 40, height: 1, background: T.rule }} />
+        <p style={{ fontFamily: T.body, fontSize: 14, color: T.inkLight, lineHeight: 1.9, maxWidth: 340 }}>
+          Swirled pink glass inspired by vintage Murano. A warm glow for your bedside or vanity — sculptural even when switched off.
+        </p>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          {['Blush Pink','Ivory','Sage'].map(c => (
+            <div key={c} style={{ padding: '8px 20px', border: `1px solid ${T.rule}`, fontFamily: T.sans, fontSize: 11, color: T.inkLight, cursor: 'pointer', letterSpacing: '0.08em' }}>{c}</div>
+          ))}
+        </div>
+        <button style={{
+          marginTop: 16, padding: '15px 0', background: T.ink, color: T.white,
+          border: 'none', fontFamily: T.sans, fontSize: 10, letterSpacing: '0.22em',
+          textTransform: 'uppercase', cursor: 'pointer',
+        }}>Add to Cart</button>
+        <p style={{ fontFamily: T.sans, fontSize: 11, color: T.mid, marginTop: 4 }}>Free shipping on orders over $75</p>
+      </div>
+    </section>
+  );
+}
+
+function Q_About() {
+  return (
+    <section style={{
+      background: T.bg, padding: '80px 48px',
+      display: 'flex', gap: 64, alignItems: 'center',
+    }}>
+      <Placeholder w={260} h={340} label="brand lifestyle image" style={{ flexShrink: 0 }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 380 }}>
+        <p style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, letterSpacing: '0.22em', textTransform: 'uppercase' }}>Our Story</p>
+        <h2 style={{ fontFamily: T.serif, fontSize: 42, fontWeight: 400, color: T.ink, lineHeight: 1.15, fontStyle: 'italic' }}>
+          More than what the eye sees
+        </h2>
+        <p style={{ fontFamily: T.sans, fontWeight: 200, fontSize: 13, color: T.inkLight, lineHeight: 1.9 }}>
+          We believe your space is a reflection of who you are becoming — not just who you are. Each piece is chosen for its quiet staying power.
+        </p>
+        <span style={{ fontFamily: T.sans, fontSize: 10, color: T.accentDk, letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer' }}>Read more →</span>
+      </div>
+    </section>
+  );
+}
+
+function Q_Cart() {
+  return (
+    <section style={{ background: T.white, padding: '48px' }}>
+      <h2 style={{ fontFamily: T.serif, fontSize: 32, fontWeight: 400, color: T.ink, fontStyle: 'italic', marginBottom: 36 }}>Your Cart</h2>
+      {[{ name: 'Mushroom Lamp', variant: 'Pink', price: '$88', img: IMGS.lamp }, { name: 'Bubble Cup & Saucer', variant: 'Blush', price: '$42', img: IMGS.cup }].map((item, i) => (
+        <div key={i} style={{ display: 'flex', gap: 20, alignItems: 'center', padding: '20px 0', borderTop: `1px solid ${T.rule}` }}>
+          <Placeholder w={72} h={72} label={item.name} img={item.img} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: T.serif, fontSize: 16, color: T.ink }}>{item.name}</p>
+            <p style={{ fontFamily: T.sans, fontSize: 11, color: T.mid, marginTop: 4 }}>{item.variant}</p>
+          </div>
+          <p style={{ fontFamily: T.serif, fontSize: 16, color: T.ink }}>{item.price}</p>
+          <span style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, cursor: 'pointer', letterSpacing: '0.1em' }}>Remove</span>
+        </div>
+      ))}
+      <div style={{ marginTop: 32, display: 'flex', justifyContent: 'flex-end', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+        <p style={{ fontFamily: T.sans, fontSize: 12, color: T.mid }}>Subtotal: <strong style={{ color: T.ink }}>$120</strong></p>
+        <button style={{ padding: '13px 48px', background: T.ink, color: T.white, border: 'none', fontFamily: T.sans, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>Checkout</button>
+      </div>
+    </section>
+  );
+}
+
+function Q_Footer() {
+  return (
+    <footer style={{ background: T.ink, padding: '56px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div>
+        <p style={{ fontFamily: T.serif, fontSize: 18, color: T.white, fontWeight: 300, fontStyle: 'italic' }}>Shopmorethanrubies</p>
+        <p style={{ fontFamily: T.sans, fontSize: 11, color: T.mid, marginTop: 10, lineHeight: 1.8 }}>Curated home & lifestyle<br/>objects for quiet living</p>
+      </div>
+      <div style={{ display: 'flex', gap: 56 }}>
+        {[['Shop', 'Candles', 'Mirrors', 'Vases', 'Diffusers'], ['Help', 'Shipping', 'Returns', 'Contact']].map(([title, ...links]) => (
+          <div key={title} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{title}</p>
+            {links.map(l => <a key={l} href="#" style={{ fontFamily: T.sans, fontSize: 12, color: 'rgba(250,250,250,0.5)', textDecoration: 'none' }}>{l}</a>)}
+          </div>
+        ))}
+      </div>
+      <div>
+        <p style={{ fontFamily: T.sans, fontSize: 10, color: T.mid, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 12 }}>Stay in touch</p>
+        <div style={{ display: 'flex', gap: 0 }}>
+          <input placeholder="your@email.com" style={{ padding: '10px 14px', border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: T.white, fontFamily: T.sans, fontSize: 11, outline: 'none', width: 160 }} />
+          <button style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)', borderLeft: 'none', color: T.white, fontFamily: T.sans, fontSize: 10, letterSpacing: '0.12em', cursor: 'pointer' }}>→</button>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function Direction1() {
+  return (
+    <div style={{ background: T.white }}>
+      <Q_Nav /><Q_Hero /><Q_ShopGrid /><Q_ProductPage /><Q_About /><Q_Cart /><Q_Footer />
+    </div>
+  );
+}
+
+/* --- DIRECTION 2: STRUCTURE --- */
+
+const S = {
+  // Brand palette — Direction 2: Structure
+  bg:    '#ede1d8',       // logo cream
+  panel: '#e0d0c4',       // slightly deeper cream
+  ink:   '#a81111',       // deep crimson for text/structure
+  mid:   '#b89080',       // warm mid tone
+  rule:  '#d4bfb4',
+  white: '#fdf8f5',
+  accent:'#e9201f',
+  accent:'#e9201f',
+  serif: "'Playfair Display', Georgia, serif",
+  body:  "'Ovo', Georgia, serif",
+  sans:  "'Jost', sans-serif",
+};
+
+function S_Nav() {
+  return (
+    <nav style={{
+      display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+      alignItems: 'center', padding: '0 40px', height: 64,
+      borderBottom: `1px solid ${S.rule}`, background: S.white,
+    }}>
+      <div style={{ display: 'flex', gap: 32 }}>
+        {['Shop','About','Reviews'].map(t => (
+          <a key={t} href="#" style={{ fontFamily: S.sans, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: S.mid, textDecoration: 'none' }}>{t}</a>
+        ))}
+      </div>
+      <div style={{ fontFamily: S.serif, fontSize: 17, fontWeight: 400, color: S.ink, letterSpacing: '0.1em', textAlign: 'center' }}>
+        SMTR
+      </div>
+      <div style={{ display: 'flex', gap: 24, justifyContent: 'flex-end' }}>
+        {['Search','Bag'].map(t => (
+          <span key={t} style={{ fontFamily: S.sans, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: S.mid, cursor: 'pointer' }}>{t}</span>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function S_Hero() {
+  return (
+    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: S.white, minHeight: 540 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '64px 48px 64px 40px', gap: 24, borderRight: `1px solid ${S.rule}` }}>
+        <p style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.3em', color: S.mid, textTransform: 'uppercase' }}>SS 2026 — Home Rituals</p>
+        <h1 style={{ fontFamily: S.serif, fontSize: 80, fontWeight: 700, lineHeight: 0.95, color: S.ink }}>
+          More<br/><span style={{ fontStyle: 'italic' }}>than</span><br/>Rubies
+        </h1>
+        <div style={{ width: 48, height: 1, background: S.ink }} />
+        <p style={{ fontFamily: S.body, fontSize: 14, color: S.mid, lineHeight: 1.9, maxWidth: 280 }}>
+          Intentional objects for unhurried mornings and golden evenings.
+        </p>
+        <button style={{ alignSelf: 'flex-start', padding: '12px 32px', background: S.ink, color: S.white, border: 'none', fontFamily: S.sans, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase', cursor: 'pointer', marginTop: 8 }}>Shop Now</button>
+      </div>
+      <Placeholder h="100%" label="hero lifestyle — candles, vases on shelf" style={{ minHeight: 540 }} />
+    </section>
+  );
+}
+
+function S_ShopGrid() {
+  const cats = [
+    { label: 'Ceramics', count: 12, ph: 'ceramics' },
+    { label: 'Glassware', count: 6, ph: 'glass' },
+    { label: 'Lighting', count: 9, ph: 'lamps' },
+    { label: 'Organizers', count: 5, ph: 'organizers' },
+  ];
+  const items = [
+    { name: 'Bubble Cup & Saucer', price: '$42', sub: 'Pink ceramic glaze', ph: 'bubble cup', img: IMGS.cup },
+    { name: 'Ripple Glass Tumbler', price: '$38', sub: 'Borosilicate + bamboo lid', ph: 'glass tumbler', img: IMGS.glass },
+    { name: 'Mushroom Lamp', price: '$88', sub: 'Pink swirl glass', ph: 'mushroom lamp', img: IMGS.lamp },
+    { name: 'Heart Mirror', price: '$45', sub: 'White beaded frame', ph: 'heart mirror', img: IMGS.heart },
+    { name: 'Donut Ring Vase', price: '$52', sub: 'Matte white ceramic', ph: 'donut vase', img: IMGS.donut },
+    { name: 'Pink Makeup Bag', price: '$35', sub: 'Saffiano PU · gold zip', ph: 'makeup bag', img: IMGS.bag },
+  ];
+  return (
+    <section style={{ background: S.bg, padding: '56px 40px' }}>
+      {/* Category bar */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 48, borderBottom: `1px solid ${S.rule}` }}>
+        {cats.map((c, i) => (
+          <div key={i} style={{ padding: '12px 28px', borderRight: `1px solid ${S.rule}`, borderTop: i === 0 ? `2px solid ${S.ink}` : '2px solid transparent' }}>
+            <p style={{ fontFamily: S.serif, fontSize: 15, color: S.ink }}>{c.label}</p>
+            <p style={{ fontFamily: S.sans, fontSize: 9, color: S.mid, letterSpacing: '0.1em', marginTop: 2 }}>{c.count} items</p>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ background: S.white, cursor: 'pointer' }}>
+            <Placeholder h={200} label={item.ph} img={item.img} />
+            <div style={{ padding: '16px 18px 20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <p style={{ fontFamily: S.body, fontSize: 17, color: S.ink }}>{item.name}</p>
+                <p style={{ fontFamily: S.serif, fontSize: 15, color: S.ink }}>{item.price}</p>
+              </div>
+              <div style={{ marginTop: 5 }}><StarRating productId={`s-${item.name}`} initialRating={[5,5,5,4,5,4][i]||4} color={S.ink} /></div>
+              <p style={{ fontFamily: S.sans, fontSize: 10, color: S.mid, marginTop: 4, letterSpacing: '0.06em' }}>{item.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function S_ProductPage() {
+  return (
+    <section style={{ background: S.white, display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div style={{ background: S.bg, padding: '40px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <Placeholder h={380} label="bubble cup & saucer" img={IMGS.cup} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+          {[{l:'side view',img:IMGS.cup},{l:'glass tumbler',img:IMGS.glass},{l:'mushroom lamp',img:IMGS.lamp}].map((x,i) => <Placeholder key={i} h={80} label={x.l} img={x.img} />)}
+        </div>
+      </div>
+      <div style={{ padding: '56px 48px 48px 40px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.22em', color: S.mid, textTransform: 'uppercase' }}>Candles</span>
+          <span style={{ color: S.rule }}>·</span>
+          <span style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.22em', color: S.mid }}>In stock</span>
+        </div>
+        <h2 style={{ fontFamily: S.serif, fontSize: 52, fontWeight: 700, color: S.ink, lineHeight: 1.0 }}>
+          Bubble Cup<br/><span style={{ fontStyle: 'italic' }}>&amp; Saucer</span>
+        </h2>
+        <div style={{ marginTop: 6 }}><StarRating productId="s-product-cup" initialRating={5} color={S.ink} size={15} /></div>
+        <p style={{ fontFamily: S.serif, fontSize: 24, color: S.ink, fontWeight: 300 }}>$42</p>
+        <div style={{ height: 1, background: S.rule }} />
+        <p style={{ fontFamily: S.body, fontSize: 14, color: S.mid, lineHeight: 2 }}>
+          Hand-glazed pink ceramic cup and cloud-shaped bubble saucer. A sculptural set that brings softness to your daily rituals.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+          <p style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.18em', color: S.mid, textTransform: 'uppercase' }}>Scent</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['Blush Pink','Ivory','Sage'].map(s => (
+              <button key={s} style={{ padding: '8px 16px', border: `1px solid ${S.rule}`, background: 'transparent', fontFamily: S.sans, fontSize: 10, color: S.ink, cursor: 'pointer', letterSpacing: '0.06em' }}>{s}</button>
+            ))}
+          </div>
+        </div>
+        <button style={{ padding: '15px', background: S.ink, color: S.white, border: 'none', fontFamily: S.sans, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase', cursor: 'pointer', marginTop: 8 }}>Add to Bag</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+          {['Free shipping over $75','Ships in 2–3 business days','30-day returns'].map(t => (
+            <p key={t} style={{ fontFamily: S.sans, fontSize: 10, color: S.mid, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: S.mid }} />{t}
+            </p>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function S_About() {
+  return (
+    <section style={{ background: S.panel, display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div style={{ padding: '64px 40px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'center' }}>
+        <p style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.28em', color: S.mid, textTransform: 'uppercase' }}>About Us</p>
+        <h2 style={{ fontFamily: S.serif, fontSize: 52, fontWeight: 400, lineHeight: 1.05, color: S.ink }}>
+          Rooted in<br/><span style={{ fontStyle: 'italic' }}>slow living</span>
+        </h2>
+        <p style={{ fontFamily: S.body, fontSize: 14, color: S.mid, lineHeight: 2, maxWidth: 360 }}>
+          We founded Shopmorethanrubies with a simple belief: the objects in your home should bring you closer to yourself. Every product is chosen with that quiet conviction.
+        </p>
+        <a href="#" style={{ fontFamily: S.sans, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: S.ink, textDecoration: 'none', borderBottom: `1px solid ${S.ink}`, paddingBottom: 2, alignSelf: 'flex-start' }}>Our story</a>
+      </div>
+      <Placeholder h={420} label="founder / brand story image" />
+    </section>
+  );
+}
+
+function S_Cart() {
+  return (
+    <section style={{ background: S.white, display: 'grid', gridTemplateColumns: '1fr 340px', minHeight: 360 }}>
+      <div style={{ padding: '48px 40px', borderRight: `1px solid ${S.rule}` }}>
+        <h2 style={{ fontFamily: S.serif, fontSize: 26, fontWeight: 300, color: S.ink, marginBottom: 32 }}>Your Bag <span style={{ fontStyle: 'italic', color: S.mid, fontSize: 18 }}>(2 items)</span></h2>
+        {[{ name: 'Bubble Cup & Saucer', v: 'Blush Pink · Qty 1', p: '$42', img: IMGS.cup }, { name: 'Mushroom Lamp', v: 'Pink · Qty 1', p: '$88', img: IMGS.lamp }].map((it, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: 16, alignItems: 'center', padding: '20px 0', borderBottom: `1px solid ${S.rule}` }}>
+            <Placeholder w={72} h={72} label={it.name} img={it.img} />
+            <div>
+              <p style={{ fontFamily: S.serif, fontSize: 16, color: S.ink }}>{it.name}</p>
+              <p style={{ fontFamily: S.sans, fontSize: 10, color: S.mid, marginTop: 4 }}>{it.v}</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontFamily: S.serif, fontSize: 16, color: S.ink }}>{it.p}</p>
+              <span style={{ fontFamily: S.sans, fontSize: 9, color: S.mid, cursor: 'pointer', letterSpacing: '0.1em' }}>Remove</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: '48px 32px', background: S.bg, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontFamily: S.serif, fontSize: 20, fontWeight: 300, color: S.ink }}>Order Summary</h3>
+        <div style={{ height: 1, background: S.rule }} />
+        {[['Subtotal','$126'],['Shipping','Free'],['Total','$126']].map(([k,v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: S.sans, fontSize: 11, color: k==='Total'? S.ink : S.mid }}>{k}</span>
+            <span style={{ fontFamily: S.serif, fontSize: 14, color: S.ink, fontWeight: k==='Total'? 400:300 }}>{v}</span>
+          </div>
+        ))}
+        <button style={{ marginTop: 16, padding: '14px', background: S.ink, color: S.white, border: 'none', fontFamily: S.sans, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase', cursor: 'pointer' }}>Checkout</button>
+      </div>
+    </section>
+  );
+}
+
+function S_Reviews() {
+  const reviews = [
+    { name: 'Amara O.', rating: 5, date: 'Apr 2026', product: 'Mushroom Lamp', text: 'Absolutely obsessed. The pink swirl glass looks like art on my nightstand. Shipping was fast and it arrived perfectly packed.' },
+    { name: 'Tolu B.', rating: 5, date: 'Mar 2026', product: 'Bubble Cup & Saucer', text: 'This is the most beautiful cup I own. The bubble saucer is so unique — everyone who comes over asks about it. Worth every penny.' },
+    { name: 'Chisom E.', rating: 5, date: 'Mar 2026', product: 'Donut Ring Vase', text: 'The matte finish is so clean and minimal. Looks incredible on my shelf with dried pampas grass. Very high quality for the price.' },
+    { name: 'Nadia K.', rating: 4, date: 'Feb 2026', product: 'Ripple Glass Tumbler', text: 'Love the wavy design — it feels premium and the bamboo lid seals perfectly. My morning iced coffee ritual just got an upgrade.' },
+    { name: 'Funke A.', rating: 5, date: 'Feb 2026', product: 'Heart Mirror', text: 'Such a sweet statement piece. The beaded frame is sturdy and it looks great on my vanity. Will definitely be ordering more.' },
+    { name: 'Ife M.', rating: 5, date: 'Jan 2026', product: 'Travel Bottles Set', text: 'Super practical and the pink caps are so cute. Finally a travel set that feels elevated instead of clinical. Repurchased twice.' },
+  ];
+  const stars = (n) => Array.from({length:5}, (_,i) => (
+    <span key={i} style={{ color: i < n ? S.accent : S.rule, fontSize: 13 }}>★</span>
+  ));
+  return (
+    <section style={{ background: S.white, padding: '64px 40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 48 }}>
+        <div>
+          <h2 style={{ fontFamily: S.serif, fontSize: 36, fontWeight: 400, color: S.ink, fontStyle: 'italic' }}>What our customers say</h2>
+          <p style={{ fontFamily: S.sans, fontSize: 10, color: S.mid, marginTop: 6, letterSpacing: '0.1em' }}>
+            {reviews.length} reviews · 4.9 average
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 2 }}>
+          {stars(5)}
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+        {reviews.map((r, i) => (
+          <div key={i} style={{ background: S.bg, padding: '28px 28px 32px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', gap: 2 }}>{stars(r.rating)}</div>
+            <p style={{ fontFamily: "'Ovo', Georgia, serif", fontSize: 14, color: S.ink, lineHeight: 1.85, fontStyle: 'italic' }}>
+              "{r.text}"
+            </p>
+            <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: `1px solid ${S.rule}`, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <div>
+                <p style={{ fontFamily: S.sans, fontSize: 11, fontWeight: 400, color: S.ink, letterSpacing: '0.04em' }}>{r.name}</p>
+                <p style={{ fontFamily: S.sans, fontSize: 9, color: S.mid, marginTop: 3, letterSpacing: '0.1em' }}>Purchased: {r.product}</p>
+              </div>
+              <span style={{ fontFamily: S.sans, fontSize: 9, color: S.mid, letterSpacing: '0.08em' }}>{r.date}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function S_Footer() {
+  return (
+    <footer style={{ background: S.ink, padding: '52px 40px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 32 }}>
+      <div>
+        <p style={{ fontFamily: S.serif, fontSize: 22, color: S.white, fontWeight: 300 }}>SMTR</p>
+        <p style={{ fontFamily: S.sans, fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 12, lineHeight: 1.9 }}>
+          Home & lifestyle objects<br/>for intentional living.
+        </p>
+      </div>
+      {[['Shop','Candles','Mirrors','Vases','Diffusers','Jewelry','Organizers'],['Company','Our Story','Journal','Press','Stockists'],['Support','Shipping','Returns','FAQ','Contact']].map(([hd, ...links]) => (
+        <div key={hd}>
+          <p style={{ fontFamily: S.sans, fontSize: 9, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 14 }}>{hd}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {links.map(l => <a key={l} href="#" style={{ fontFamily: S.sans, fontSize: 11, color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>{l}</a>)}
+          </div>
+        </div>
+      ))}
+    </footer>
+  );
+}
+
+function Direction2() {
+  return (
+    <div style={{ background: S.bg }}>
+      <S_Nav /><S_Hero /><S_ShopGrid /><S_ProductPage /><S_About /><S_Reviews /><S_Cart /><S_Footer />
+    </div>
+  );
+}
+
+/* --- DIRECTION 3: WARMTH --- */
+
+const W = {
+  // Brand palette — Direction 3: Warmth
+  bg:    '#fdf8f5',       // softest cream white
+  bg2:   '#ede1d8',       // logo cream
+  panel: '#e0cfc6',       // deeper warm panel
+  ink:   '#2a0a0a',       // near-black with red undertone
+  mid:   '#a07060',       // warm terracotta-grey
+  rule:  '#d8c4b8',
+  white: '#fdf8f5',
+  accent:'#e9201f',       // bright brand red
+  accentDk:'#a81111',    // deep brand crimson
+  serif: "'Playfair Display', Georgia, serif",
+  body:  "'Ovo', Georgia, serif",
+  sans:  "'Jost', sans-serif",
+};
+
+function W_Nav() {
+  return (
+    <nav style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '24px 48px', background: W.white, borderBottom: `1px solid ${W.rule}`,
+    }}>
+      <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
+        <span style={{ fontFamily: W.sans, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: W.mid, cursor: 'pointer' }}>Shop</span>
+        <span style={{ fontFamily: W.sans, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: W.mid, cursor: 'pointer' }}>Collections</span>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontFamily: W.serif, fontSize: 22, fontWeight: 400, color: W.ink, letterSpacing: '0.06em' }}>Shopmorethanrubies</p>
+        <p style={{ fontFamily: W.sans, fontSize: 8, letterSpacing: '0.3em', color: W.mid, textTransform: 'uppercase', marginTop: 2 }}>Home & Lifestyle</p>
+      </div>
+      <div style={{ display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'flex-end' }}>
+        <span style={{ fontFamily: W.sans, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: W.mid, cursor: 'pointer' }}>About</span>
+        <span style={{ fontFamily: W.sans, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: W.mid, cursor: 'pointer' }}>Cart</span>
+      </div>
+    </nav>
+  );
+}
+
+function W_Hero() {
+  return (
+    <section style={{ background: W.bg, padding: '0 0 0 0', display: 'flex', minHeight: 560 }}>
+      <div style={{ flex: '0 0 45%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '72px 48px 72px 56px', gap: 28 }}>
+        <p style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.3em', color: W.mid, textTransform: 'uppercase' }}>Curated · Spring 2026</p>
+        <h1 style={{
+          fontFamily: W.serif, fontSize: 62, fontWeight: 300, lineHeight: 1.05,
+          color: W.ink,
+        }}>
+          Objects<br/>that outlast<br/><em>the moment</em>
+        </h1>
+        <p style={{ fontFamily: W.body, fontSize: 14, color: W.mid, lineHeight: 2, maxWidth: 300 }}>
+          Candles. Mirrors. Vases. Things that make a room feel like yours.
+        </p>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 8 }}>
+          <button style={{ padding: '12px 36px', background: W.ink, color: W.white, border: 'none', fontFamily: W.sans, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: 'pointer' }}>Shop Collection</button>
+          <span style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, letterSpacing: '0.12em', textDecoration: 'underline', cursor: 'pointer' }}>Our Story</span>
+        </div>
+      </div>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 3 }}>
+        <Placeholder h="100%" label="mushroom lamp" img={IMGS.lamp} style={{ gridRow: '1 / span 2' }} />
+        <Placeholder h="100%" label="bubble cup" img={IMGS.cup} />
+        <Placeholder h="100%" label="glass tumbler" img={IMGS.glass} />
+      </div>
+    </section>
+  );
+}
+
+function W_ShopGrid() {
+  const items = [
+    { name: 'Bubble Cup & Saucer', price: '$42', tag: 'Bestseller', ph: 'bubble cup', img: IMGS.cup },
+    { name: 'Ripple Glass Tumbler', price: '$38', tag: 'New', ph: 'glass tumbler', img: IMGS.glass },
+    { name: 'Mushroom Lamp', price: '$88', tag: 'New', ph: 'mushroom lamp', img: IMGS.lamp },
+    { name: 'Heart Mirror', price: '$45', tag: '', ph: 'heart mirror', img: IMGS.heart },
+    { name: 'Donut Ring Vase', price: '$52', tag: 'New', ph: 'donut vase', img: IMGS.donut },
+    { name: 'Ribbed Vase', price: '$48', tag: '', ph: 'ribbed vase', img: IMGS.ribbed },
+    { name: 'Pink Makeup Bag', price: '$35', tag: '', ph: 'makeup bag', img: IMGS.bag },
+    { name: 'Travel Bottles Set', price: '$26', tag: '', ph: 'travel bottles', img: IMGS.travel },
+    { name: 'Silk Hair Ties', price: '$20', tag: '', ph: 'hair ties', img: null },
+  ];
+  return (
+    <section style={{ background: W.bg2, padding: '64px 48px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 40 }}>
+        <div>
+          <h2 style={{ fontFamily: W.serif, fontSize: 34, fontWeight: 300, color: W.ink, fontStyle: 'italic' }}>Shop Everything</h2>
+          <p style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, marginTop: 6, letterSpacing: '0.08em' }}>{items.length} products</p>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {['All','Candles','Mirrors','Vases','More'].map((f, i) => (
+            <button key={f} style={{ padding: '7px 16px', border: `1px solid ${i===0? W.ink : W.rule}`, background: i===0? W.ink : 'transparent', color: i===0? W.white : W.mid, fontFamily: W.sans, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer' }}>{f}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ background: W.white, cursor: 'pointer', position: 'relative' }}>
+            {item.tag && (
+              <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 1, padding: '4px 10px', background: W.ink, fontFamily: W.sans, fontSize: 8, letterSpacing: '0.18em', color: W.white, textTransform: 'uppercase' }}>{item.tag}</div>
+            )}
+            <Placeholder h={180} label={item.ph} img={item.img} />
+            <div style={{ padding: '14px 16px 18px' }}>
+              <p style={{ fontFamily: W.body, fontSize: 16, color: W.ink }}>{item.name}</p>
+              <div style={{ marginTop: 4 }}><StarRating productId={`w-${item.name}`} initialRating={[5,4,5,5,5,4,5,4][i]||4} color={W.accent} /></div>
+              <p style={{ fontFamily: W.sans, fontSize: 11, color: W.mid, marginTop: 5 }}>{item.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function W_ProductPage() {
+  return (
+    <section style={{ background: W.white, display: 'flex', gap: 0, minHeight: 520 }}>
+      <div style={{ flex: '0 0 420px', background: W.bg, padding: 32, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Placeholder h={360} label="ripple glass tumbler" img={IMGS.glass} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+          {[{l:'cup',img:IMGS.cup},{l:'lamp',img:IMGS.lamp},{l:'glass',img:IMGS.glass},{l:'detail',img:null}].map((x,i) => <Placeholder key={i} h={72} label={x.l} img={x.img} />)}
+        </div>
+      </div>
+      <div style={{ flex: 1, padding: '52px 52px 48px 48px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <span style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.18em', color: W.mid, textTransform: 'uppercase' }}>Mirrors</span>
+          <span style={{ color: W.rule }}>·</span>
+          <span style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.18em', color: W.accent }}>In stock</span>
+        </div>
+        <h2 style={{ fontFamily: W.serif, fontSize: 56, fontWeight: 700, color: W.ink, lineHeight: 1.0 }}>Ripple Glass Tumbler</h2>
+        <div style={{ marginTop: 4, marginBottom: 2 }}><StarRating productId="w-product-glass" initialRating={4} color={W.accent} size={15} /></div>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'baseline' }}>
+          <p style={{ fontFamily: W.serif, fontSize: 26, color: W.ink }}>$38</p>
+          <p style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, letterSpacing: '0.06em' }}>Free shipping</p>
+        </div>
+        <div style={{ height: 1, background: W.rule, margin: '4px 0' }} />
+        <p style={{ fontFamily: W.body, fontSize: 14, color: W.mid, lineHeight: 2, maxWidth: 380 }}>
+          Wavy borosilicate glass with bamboo lid and glass straw. The rippled body catches light beautifully — equally at home on your desk or nightstand.
+        </p>
+        <div style={{ marginTop: 4 }}>
+          <p style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.18em', color: W.mid, textTransform: 'uppercase', marginBottom: 10 }}>Finish</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['Clear','Frosted','Sage'].map((f, i) => (
+              <button key={f} style={{ padding: '9px 18px', border: `1px solid ${i===0? W.ink : W.rule}`, background: i===0? 'transparent' : 'transparent', fontFamily: W.sans, fontSize: 10, color: i===0? W.ink : W.mid, cursor: 'pointer', letterSpacing: '0.04em' }}>{f}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <button style={{ flex: 1, padding: '14px', background: W.ink, color: W.white, border: 'none', fontFamily: W.sans, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: 'pointer' }}>Add to Cart</button>
+          <button style={{ width: 48, height: 48, border: `1px solid ${W.rule}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: W.accent, fontSize: 18 }}>♡</button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+          {['Handmade in small batches','Ships in 2–4 business days','30-day hassle-free returns'].map(t => (
+            <p key={t} style={{ fontFamily: W.sans, fontSize: 10, color: W.mid }}>{t}</p>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function W_About() {
+  return (
+    <section style={{ background: W.bg, padding: '72px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <p style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.28em', color: W.mid, textTransform: 'uppercase' }}>Our Story</p>
+        <h2 style={{ fontFamily: W.serif, fontSize: 52, fontWeight: 400, lineHeight: 1.1, color: W.ink }}>
+          Founded on the<br/><em>belief that beauty</em><br/>is never frivolous
+        </h2>
+        <p style={{ fontFamily: W.body, fontSize: 14, color: W.mid, lineHeight: 2 }}>
+          Shopmorethanrubies began as a personal search — for objects that felt right in the hand, meaningful in the room, and honest in the making. We found them, and we wanted to share them.
+        </p>
+        <p style={{ fontFamily: W.sans, fontWeight: 200, fontSize: 13, color: W.mid, lineHeight: 2 }}>
+          Every product we carry has been lived with before it reached you.
+        </p>
+        <a href="#" style={{ fontFamily: W.sans, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: W.ink, textDecoration: 'none', borderBottom: `1px solid ${W.ink}`, paddingBottom: 2, alignSelf: 'flex-start', marginTop: 8 }}>Meet the founder</a>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Placeholder h={220} label="founder portrait" style={{ gridRow: '1 / span 2' }} />
+        <Placeholder h={104} label="workspace detail" />
+        <Placeholder h={104} label="product close-up" />
+      </div>
+    </section>
+  );
+}
+
+function W_Cart() {
+  return (
+    <section style={{ background: W.white, display: 'grid', gridTemplateColumns: '1fr 320px' }}>
+      <div style={{ padding: '48px 48px 48px 56px', borderRight: `1px solid ${W.rule}` }}>
+        <h2 style={{ fontFamily: W.serif, fontSize: 30, fontWeight: 300, color: W.ink, fontStyle: 'italic', marginBottom: 32 }}>Cart</h2>
+        {[
+          { n:'Bubble Cup & Saucer', v:'Blush · 1', p:'$42', ph:'bubble cup', img:IMGS.cup },
+          { n:'Ripple Glass Tumbler', v:'Clear · 1', p:'$38', ph:'glass tumbler', img:IMGS.glass },
+          { n:'Mushroom Lamp', v:'Pink · 1', p:'$88', ph:'lamp', img:IMGS.lamp },
+        ].map((it, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr auto', gap: 18, alignItems: 'center', padding: '20px 0', borderBottom: `1px solid ${W.rule}` }}>
+            <Placeholder w={80} h={80} label={it.ph} img={it.img} />
+            <div>
+              <p style={{ fontFamily: W.serif, fontSize: 17, color: W.ink }}>{it.n}</p>
+              <p style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, marginTop: 5, letterSpacing: '0.04em' }}>{it.v}</p>
+            </div>
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+              <p style={{ fontFamily: W.serif, fontSize: 16, color: W.ink }}>{it.p}</p>
+              <span style={{ fontFamily: W.sans, fontSize: 9, color: W.mid, cursor: 'pointer' }}>Remove</span>
+            </div>
+          </div>
+        ))}
+        <p style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, marginTop: 20 }}>Add a note to your order →</p>
+      </div>
+      <div style={{ padding: '48px 40px', background: W.bg, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <h3 style={{ fontFamily: W.serif, fontSize: 22, fontWeight: 300, color: W.ink, marginBottom: 4 }}>Summary</h3>
+        {[['Subtotal (3 items)','$168'],['Shipping','Free'],['Estimated tax','$13.44'],['Order total','$181.44']].map(([k,v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderTop: k==='Order total'?`1px solid ${W.rule}`:'none', paddingTop: k==='Order total'?12:0 }}>
+            <span style={{ fontFamily: W.sans, fontSize: 11, color: k==='Order total'? W.ink:W.mid, fontWeight: k==='Order total'?400:300 }}>{k}</span>
+            <span style={{ fontFamily: W.serif, fontSize: 14, color: W.ink }}>{v}</span>
+          </div>
+        ))}
+        <button style={{ marginTop: 8, padding: '14px', background: W.ink, color: W.white, border: 'none', fontFamily: W.sans, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase', cursor: 'pointer' }}>Proceed to Checkout</button>
+        <p style={{ fontFamily: W.sans, fontSize: 10, color: W.mid, textAlign: 'center' }}>Free shipping on all orders over $75</p>
+      </div>
+    </section>
+  );
+}
+
+function W_Footer() {
+  return (
+    <footer style={{ background: W.ink, padding: '56px 56px 40px', display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 32 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <p style={{ fontFamily: W.serif, fontSize: 20, color: W.white, fontStyle: 'italic' }}>Shopmorethanrubies</p>
+        <p style={{ fontFamily: W.sans, fontSize: 11, color: 'rgba(255,255,255,0.38)', lineHeight: 1.9, maxWidth: 220 }}>
+          Intentionally chosen objects for homes that feel like you.
+        </p>
+        <div style={{ marginTop: 8 }}>
+          <p style={{ fontFamily: W.sans, fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>Newsletter</p>
+          <div style={{ display: 'flex' }}>
+            <input placeholder="Email address" style={{ flex: 1, padding: '9px 12px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: W.white, fontFamily: W.sans, fontSize: 10, outline: 'none', minWidth: 0 }} />
+            <button style={{ padding: '9px 16px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.12)', borderLeft: 'none', color: W.white, fontFamily: W.sans, fontSize: 10, cursor: 'pointer' }}>→</button>
+          </div>
+        </div>
+      </div>
+      {[['Shop','All Products','Candles','Mirrors','Vases & Ceramics','Diffusers','Jewelry'],['Home & Org','Jewelry Boxes','Cosmetic Organizers','Travel Bottles','Hair Ties'],['Info','Our Story','Shipping & Returns','FAQ','Contact Us']].map(([hd,...links]) => (
+        <div key={hd}>
+          <p style={{ fontFamily: W.sans, fontSize: 9, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 14 }}>{hd}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {links.map(l => <a key={l} href="#" style={{ fontFamily: W.sans, fontSize: 11, color: 'rgba(255,255,255,0.48)', textDecoration: 'none' }}>{l}</a>)}
+          </div>
+        </div>
+      ))}
+    </footer>
+  );
+}
+
+function Direction3() {
+  return (
+    <div style={{ background: W.bg }}>
+      <W_Nav /><W_Hero /><W_ShopGrid /><W_ProductPage /><W_About /><W_Cart /><W_Footer />
+    </div>
+  );
+}
+
+/* --- TWEAKS --- */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{"showDirection1":true,"showDirection2":true,"showDirection3":true,"focusSection":"all"}/*EDITMODE-END*/;
+
+/* --- MAIN CANVAS --- */
+function App() {
+  const result = useTweaks(TWEAK_DEFAULTS);
+  const tweaks = result?.tweaks ?? TWEAK_DEFAULTS;
+  const setTweak = result?.setTweak ?? (() => {});
+
+  const sections = [
+    { id: 'hero',    label: 'Hero' },
+    { id: 'shop',    label: 'Shop Grid' },
+    { id: 'product', label: 'Product Page' },
+    { id: 'about',   label: 'About' },
+    { id: 'cart',    label: 'Cart' },
+    { id: 'footer',  label: 'Footer' },
+    { id: 'all',     label: 'All Sections' },
+  ];
+
+  return (
+    <>
+      <TweaksPanel>
+        <TweakSection label="Directions">
+          <TweakToggle label="Quiet (Dir. 1)" value={tweaks.showDirection1} onChange={v => setTweak('showDirection1', v)} />
+          <TweakToggle label="Structure (Dir. 2)" value={tweaks.showDirection2} onChange={v => setTweak('showDirection2', v)} />
+          <TweakToggle label="Warmth (Dir. 3)" value={tweaks.showDirection3} onChange={v => setTweak('showDirection3', v)} />
+        </TweakSection>
+        <TweakSection label="Focus Section">
+          <TweakSelect
+            label="Show"
+            value={tweaks.focusSection}
+            options={sections.map(s => ({ value: s.id, label: s.label }))}
+            onChange={v => setTweak('focusSection', v)}
+          />
+        </TweakSection>
+      </TweaksPanel>
+
+      <DesignCanvas>
+        {tweaks.showDirection1 && (
+          <DCSection id="dir1" title="Direction 1 — Quiet">
+            <DCPostIt>Extreme negative space · centered editorial · whisper-weight serif type</DCPostIt>
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'hero') && <DCArtboard id="q-hero" label="Hero" width={900}><div style={{overflow:'hidden'}}><Q_Nav /><Q_Hero /></div></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'shop') && <DCArtboard id="q-shop" label="Shop Grid" width={900}><Q_ShopGrid /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'product') && <DCArtboard id="q-product" label="Product Page" width={900}><Q_ProductPage /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'about') && <DCArtboard id="q-about" label="About" width={900}><Q_About /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'cart') && <DCArtboard id="q-cart" label="Cart" width={900}><Q_Cart /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'footer') && <DCArtboard id="q-footer" label="Footer" width={900}><Q_Footer /></DCArtboard>}
+          </DCSection>
+        )}
+
+        {tweaks.showDirection2 && (
+          <DCSection id="dir2" title="Direction 2 — Structure">
+            <DCPostIt>Two-column asymmetric grid · vertical rules · stark sans + italic serif</DCPostIt>
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'hero') && <DCArtboard id="s-hero" label="Hero" width={960}><div style={{overflow:'hidden'}}><S_Nav /><S_Hero /></div></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'shop') && <DCArtboard id="s-shop" label="Shop Grid" width={960}><S_ShopGrid /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'product') && <DCArtboard id="s-product" label="Product Page" width={960}><S_ProductPage /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'about') && <DCArtboard id="s-about" label="About" width={960}><S_About /></DCArtboard>}
+            {(tweaks.focusSection === 'all') && <DCArtboard id="s-reviews" label="Reviews" width={960}><S_Reviews /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'cart') && <DCArtboard id="s-cart" label="Cart" width={960}><S_Cart /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'footer') && <DCArtboard id="s-footer" label="Footer" width={960}><S_Footer /></DCArtboard>}
+          </DCSection>
+        )}
+
+        {tweaks.showDirection3 && (
+          <DCSection id="dir3" title="Direction 3 — Warmth">
+            <DCPostIt>Warmer grey-beige tones · 4-col product grid · rich editorial about section</DCPostIt>
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'hero') && <DCArtboard id="w-hero" label="Hero" width={960}><div style={{overflow:'hidden'}}><W_Nav /><W_Hero /></div></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'shop') && <DCArtboard id="w-shop" label="Shop Grid" width={960}><W_ShopGrid /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'product') && <DCArtboard id="w-product" label="Product Page" width={960}><W_ProductPage /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'about') && <DCArtboard id="w-about" label="About" width={960}><W_About /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'cart') && <DCArtboard id="w-cart" label="Cart" width={960}><W_Cart /></DCArtboard>}
+            {(tweaks.focusSection === 'all' || tweaks.focusSection === 'footer') && <DCArtboard id="w-footer" label="Footer" width={960}><W_Footer /></DCArtboard>}
+          </DCSection>
+        )}
+      </DesignCanvas>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<div id="root"></div>
+</body>
+</html>

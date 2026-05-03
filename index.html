@@ -556,7 +556,7 @@ function Nav({ cartCount, wishlistCount, onCartOpen, onWishlistOpen, setPage, us
 /* ── Promo Banner ── */
 function PromoBanner({ onDismiss }) {
   return (
-    <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'9px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
+    <div className="hide-mobile" style={{ background:C.crimson,color:'white',textAlign:'center',padding:'9px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
       <span>Cozy corners, fast deliveries — free shipping on orders over ₦75,000</span>
       <button onClick={onDismiss} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
     </div>
@@ -1176,7 +1176,8 @@ function App() {
   const [products, setProducts]   = useState(loadProducts);
   const [selectedProduct, setSelectedProduct] = useState(()=>loadProducts()[0]);
   const [bannerVisible, setBannerVisible] = useState(true);
-  const headerH = bannerVisible ? 106 : 64;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const headerH = (bannerVisible && !isMobile) ? 106 : 64;
 
   const cart     = useCart(user?.id);
   const wishlist = useWishlist(user?.id);

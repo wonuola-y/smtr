@@ -12,11 +12,11 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: #f5ede8; font-family: 'Jost', sans-serif; }
+html, body { height: 100%; background: #FFE9EC; font-family: 'Jost', sans-serif; }
 input, textarea, select { font-family: 'Jost', sans-serif; }
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #ede1d8; }
-::-webkit-scrollbar-thumb { background: #c04040; border-radius: 3px; }
+::-webkit-scrollbar-track { background: #F5D0D8; }
+::-webkit-scrollbar-thumb { background: #66021F; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -25,15 +25,15 @@ input, textarea, select { font-family: 'Jost', sans-serif; }
 const { useState, useEffect, useRef, useCallback } = React;
 
 const C = {
-  bg:      '#fdf8f5',
-  cream:   '#ede1d8',
-  panel:   '#f5ede8',
-  rule:    '#e0cfc6',
-  ink:     '#a81111',
-  inkDark: '#e9201f',
-  mid:     '#b89080',
-  white:   '#fdf8f5',
-  red:     '#e9201f',
+  bg:      '#FFE9EC',
+  cream:   '#F5D0D8',
+  panel:   '#FADDE3',
+  rule:    '#E8C0CC',
+  ink:     '#66021F',
+  inkDark: '#8B0226',
+  mid:     '#9E7080',
+  white:   '#FFF5F7',
+  red:     '#8B0226',
   sans:    "'Jost', sans-serif",
   serif:   "'Playfair Display', Georgia, serif",
 };
@@ -115,18 +115,18 @@ function LoginScreen({ onLogin }) {
     setLoading(false);
   };
 
-  const inp = { width:'100%', padding:'12px 14px', border:'1px solid #d8c4b8', background:'#fdf8f5', fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2, transition:'border-color 0.15s' };
+  const inp = { width:'100%', padding:'12px 14px', border:'1px solid #E8C0CC', background:'#FFF5F7', fontFamily:C.sans, fontSize:13, color:'#3D0010', outline:'none', borderRadius:2, transition:'border-color 0.15s' };
 
   return (
-    <div style={{ minHeight:'100vh', background:'#f0e4dc', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+    <div style={{ minHeight:'100vh', background:'#FFE9EC', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
       <div style={{ width:'100%', maxWidth:420 }}>
         <div style={{ textAlign:'center', marginBottom:40 }}>
-          <p style={{ fontFamily:C.serif, fontSize:34, color:'#a81111', fontStyle:'italic', letterSpacing:'0.02em' }}>smtr</p>
+          <p style={{ fontFamily:C.serif, fontSize:34, color:'#66021F', fontStyle:'italic', letterSpacing:'0.02em' }}>smtr</p>
           <p style={{ fontFamily:C.sans, fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'#b89080', marginTop:6 }}>Admin Portal</p>
         </div>
 
         {firstRun && (
-          <div style={{ background:'#fff8e8', border:'1px solid #f0d88a', borderRadius:4, padding:'16px 20px', marginBottom:24 }}>
+          <div style={{ background:'#FFF5F7', border:'1px solid #f0d88a', borderRadius:4, padding:'16px 20px', marginBottom:24 }}>
             <p style={{ fontFamily:C.sans, fontSize:10, color:'#8a6800', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:500, marginBottom:8 }}>First-time setup</p>
             <p style={{ fontFamily:C.sans, fontSize:12, color:'#5a4800', lineHeight:1.8 }}>
               Default superadmin account created.<br/>
@@ -140,13 +140,13 @@ function LoginScreen({ onLogin }) {
           <div>
             <label style={{ fontFamily:C.sans, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:7 }}>Username</label>
             <input style={inp} value={username} onChange={e=>setUsername(e.target.value)} placeholder="superadmin" autoComplete="username"
-              onFocus={e=>e.target.style.borderColor='#a81111'} onBlur={e=>e.target.style.borderColor='#d8c4b8'} />
+              onFocus={e=>e.target.style.borderColor='#66021F'} onBlur={e=>e.target.style.borderColor='#E8C0CC'} />
           </div>
           <div>
             <label style={{ fontFamily:C.sans, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:7 }}>Password</label>
             <div style={{ position:'relative' }}>
               <input style={{ ...inp, paddingRight:44 }} type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password"
-                onFocus={e=>e.target.style.borderColor='#a81111'} onBlur={e=>e.target.style.borderColor='#d8c4b8'} />
+                onFocus={e=>e.target.style.borderColor='#66021F'} onBlur={e=>e.target.style.borderColor='#E8C0CC'} />
               <button type="button" onClick={()=>setShowPw(v=>!v)} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:C.mid, fontSize:12, padding:4 }}>
                 {showPw ? '🙈' : '👁'}
               </button>
@@ -156,9 +156,9 @@ function LoginScreen({ onLogin }) {
           {error && <p style={{ fontFamily:C.sans, fontSize:12, color:'#e9201f', marginTop:-8 }}>{error}</p>}
 
           <button type="submit" disabled={loading}
-            style={{ padding:'14px', background: loading ? '#c04040' : '#a81111', color:'#fdf8f5', border:'none', fontFamily:C.sans, fontSize:10, letterSpacing:'0.24em', textTransform:'uppercase', cursor: loading ? 'default' : 'pointer', borderRadius:2, transition:'background 0.15s', marginTop:4 }}
-            onMouseEnter={e=>{ if(!loading) e.currentTarget.style.background='#e9201f'; }}
-            onMouseLeave={e=>{ if(!loading) e.currentTarget.style.background='#a81111'; }}>
+            style={{ padding:'14px', background: loading ? '#9E7080' : '#66021F', color:'#FFF5F7', border:'none', fontFamily:C.sans, fontSize:10, letterSpacing:'0.24em', textTransform:'uppercase', cursor: loading ? 'default' : 'pointer', borderRadius:2, transition:'background 0.15s', marginTop:4 }}
+            onMouseEnter={e=>{ if(!loading) e.currentTarget.style.background='#8B0226'; }}
+            onMouseLeave={e=>{ if(!loading) e.currentTarget.style.background='#66021F'; }}>
             {loading ? 'Signing in…' : 'Sign In →'}
           </button>
         </form>
@@ -215,7 +215,7 @@ function TeamManager({ currentUser, showToast }) {
     showToast('Password updated');
   };
 
-  const inp = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2 };
+  const inp = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#3D0010', outline:'none', borderRadius:2 };
   const lbl = { fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 };
 
   return (
@@ -296,14 +296,14 @@ function TeamManager({ currentUser, showToast }) {
           const isSelf       = admin.username === currentUser.username;
           const isSuperAdmin = admin.role === 'superadmin';
           return (
-            <div key={admin.username} style={{ display:'grid', gridTemplateColumns:'1fr 130px 130px 130px 80px', padding:'15px 20px', background: i%2===0 ? C.white : '#faf3ef', borderTop: i>0 ? `1px solid ${C.rule}` : 'none', alignItems:'center' }}>
+            <div key={admin.username} style={{ display:'grid', gridTemplateColumns:'1fr 130px 130px 130px 80px', padding:'15px 20px', background: i%2===0 ? C.white : '#FBE8ED', borderTop: i>0 ? `1px solid ${C.rule}` : 'none', alignItems:'center' }}>
               {/* Avatar + name */}
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                 <div style={{ width:34, height:34, borderRadius:'50%', background: isSuperAdmin ? C.ink : C.cream, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <span style={{ fontFamily:C.sans, fontSize:13, fontWeight:500, color: isSuperAdmin ? 'white' : C.inkDark }}>{admin.username[0].toUpperCase()}</span>
                 </div>
                 <div>
-                  <p style={{ fontFamily:C.sans, fontSize:13, color:'#2a0808', fontWeight: isSelf ? 500 : 400 }}>{admin.username}</p>
+                  <p style={{ fontFamily:C.sans, fontSize:13, color:'#3D0010', fontWeight: isSelf ? 500 : 400 }}>{admin.username}</p>
                   {isSelf && <p style={{ fontFamily:C.sans, fontSize:9, color:C.mid, letterSpacing:'0.1em', marginTop:1 }}>You</p>}
                 </div>
               </div>
@@ -353,9 +353,9 @@ function ImageDropZone({ currentImg, onImageChange, compact=false }) {
       {currentImg ? (
         <>
           <img src={currentImg} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center' }} />
-          <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0)', display:'flex', alignItems:'center', justifyContent:'center', transition:'background 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.background='rgba(168,17,17,0.55)'}
-            onMouseLeave={e=>e.currentTarget.style.background='rgba(168,17,17,0)'}>
+          <div style={{ position:'absolute', inset:0, background:'rgba(102,2,31,0)', display:'flex', alignItems:'center', justifyContent:'center', transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(102,2,31,0.55)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(102,2,31,0)'}>
             <span style={{ fontFamily:C.sans, fontSize:11, letterSpacing:'0.16em', textTransform:'uppercase', color:'white', opacity:0, transition:'opacity 0.15s', pointerEvents:'none' }}
               onMouseEnter={e=>e.currentTarget.style.opacity=1}
               onMouseLeave={e=>e.currentTarget.style.opacity=0}>Replace</span>
@@ -379,7 +379,7 @@ function EditModal({ product, onSave, onClose }) {
   const [variantInput, setVariantInput] = useState('');
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
 
-  const inp = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#2a0808', outline:'none', borderRadius:2 };
+  const inp = { width:'100%', padding:'10px 12px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:13, color:'#3D0010', outline:'none', borderRadius:2 };
   const lbl = { fontFamily:C.sans, fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:C.mid, display:'block', marginBottom:6 };
 
   const addVariant = () => {
@@ -406,7 +406,7 @@ function EditModal({ product, onSave, onClose }) {
 
         {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <h2 style={{ fontFamily:C.serif, fontSize:22, fontWeight:400, color:'#2a0808', fontStyle:'italic' }}>{product.id==='new'?'Add Product':'Edit Product'}</h2>
+          <h2 style={{ fontFamily:C.serif, fontSize:22, fontWeight:400, color:'#3D0010', fontStyle:'italic' }}>{product.id==='new'?'Add Product':'Edit Product'}</h2>
           <button onClick={onClose} style={{ background:'none', border:'none', fontSize:22, color:C.mid, cursor:'pointer', padding:'4px 8px' }}>×</button>
         </div>
 
@@ -450,7 +450,7 @@ function EditModal({ product, onSave, onClose }) {
           {(form.variants||[]).length > 0 && (
             <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
               {form.variants.map(v => (
-                <span key={v} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 8px 5px 12px', background:C.cream, borderRadius:20, fontFamily:C.sans, fontSize:11, color:'#2a0808' }}>
+                <span key={v} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 8px 5px 12px', background:C.cream, borderRadius:20, fontFamily:C.sans, fontSize:11, color:'#3D0010' }}>
                   {v}
                   <button onClick={()=>removeVariant(v)} style={{ background:'none', border:'none', cursor:'pointer', color:C.mid, fontSize:15, lineHeight:1, padding:0, display:'flex', alignItems:'center' }}>×</button>
                 </span>
@@ -482,7 +482,7 @@ function EditModal({ product, onSave, onClose }) {
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(130px,1fr))', gap:14 }}>
               {form.variants.map(v => (
                 <div key={v}>
-                  <p style={{ fontFamily:C.sans, fontSize:10, color:'#2a0808', marginBottom:7, letterSpacing:'0.04em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{v}</p>
+                  <p style={{ fontFamily:C.sans, fontSize:10, color:'#3D0010', marginBottom:7, letterSpacing:'0.04em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{v}</p>
                   <ImageDropZone
                     compact
                     currentImg={(form.variantImages||{})[v] || null}
@@ -558,21 +558,21 @@ function ProductCard({ product, onEdit, onDelete, onToggle }) {
           {soldOut   && <span style={{ padding:'4px 10px', background:'#c04040', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Sold Out</span>}
           {featured  && <span style={{ padding:'4px 10px', background:'#d4822a', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Featured</span>}
         </div>
-        <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, opacity:hovering?1:0, transition:'opacity 0.18s', flexWrap:'wrap', padding:'0 12px' }}>
+        <div style={{ position:'absolute', inset:0, background:'rgba(102,2,31,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, opacity:hovering?1:0, transition:'opacity 0.18s', flexWrap:'wrap', padding:'0 12px' }}>
           <button onClick={()=>onEdit(product)} style={{ padding:'8px 16px', background:'white', border:'none', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:C.ink, cursor:'pointer' }}>Edit</button>
           <button onClick={()=>onDelete(product.id)} style={{ padding:'8px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.5)', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:'white', cursor:'pointer' }}>Remove</button>
         </div>
       </div>
       <div style={{ padding:'12px 16px 14px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-          <p style={{ fontFamily:"'Ovo', Georgia, serif", fontSize:15, color:'#2a0808' }}>{product.name}</p>
+          <p style={{ fontFamily:"'Ovo', Georgia, serif", fontSize:15, color:'#3D0010' }}>{product.name}</p>
           <p style={{ fontFamily:C.serif, fontSize:14, color:C.ink }}>₦{product.price}</p>
         </div>
         <p style={{ fontFamily:C.sans, fontSize:10, color:C.mid, marginTop:3, letterSpacing:'0.08em' }}>{product.category}</p>
         {Array.isArray(product.variants)&&product.variants.length>0&&(
           <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
             {product.variants.slice(0,3).map((v,i)=>(
-              <span key={i} style={{ padding:'2px 7px', background:C.cream, fontFamily:C.sans, fontSize:9, color:'#5a3030' }}>{v}</span>
+              <span key={i} style={{ padding:'2px 7px', background:C.cream, fontFamily:C.sans, fontSize:9, color:'#66021F' }}>{v}</span>
             ))}
             {product.variants.length>3&&<span style={{ fontFamily:C.sans, fontSize:9, color:C.mid }}>+{product.variants.length-3}</span>}
           </div>
@@ -654,7 +654,7 @@ function ProductManager({ showToast }) {
         </div>
         <div style={{ display:'flex', gap:12, alignItems:'center' }}>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search products…"
-            style={{ padding:'9px 14px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:12, color:'#2a0808', outline:'none', width:200 }} />
+            style={{ padding:'9px 14px', border:`1px solid ${C.rule}`, background:C.white, fontFamily:C.sans, fontSize:12, color:'#3D0010', outline:'none', width:200 }} />
           <button onClick={()=>setEditing({id:'new',name:'',price:'',category:'Ceramics',tag:'',variants:[],desc:'',img:null})}
             style={{ padding:'10px 24px', background:C.ink, color:C.white, border:'none', fontFamily:C.sans, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer', whiteSpace:'nowrap', transition:'background 0.15s' }}
             onMouseEnter={e=>e.currentTarget.style.background=C.inkDark}
@@ -712,9 +712,9 @@ function App() {
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, display:'flex', flexDirection:'column' }}>
-      <header style={{ background:'#a81111', padding:'0 40px', borderBottom:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'stretch', justifyContent:'space-between' }}>
+      <header style={{ background:'#66021F', padding:'0 40px', borderBottom:'1px solid rgba(255,255,255,0.12)', display:'flex', alignItems:'stretch', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:28 }}>
-          <p style={{ fontFamily:C.serif, fontSize:18, color:'#fdf8f5', fontStyle:'italic' }}>smtr</p>
+          <p style={{ fontFamily:C.serif, fontSize:18, color:'#FFF5F7', fontStyle:'italic' }}>smtr</p>
           <span style={{ color:'rgba(255,255,255,0.12)', fontSize:16 }}>|</span>
           <div style={{ display:'flex', gap:20, alignItems:'stretch', height:60 }}>
             {navBtn('products', 'Products')}

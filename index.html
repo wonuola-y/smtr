@@ -485,7 +485,7 @@ function Nav({ cartCount, wishlistCount, onCartOpen, onWishlistOpen, setPage, us
   const close = () => { setMobileOpen(false); setAccountOpen(false); };
 
   return (
-    <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:900,background:scrolled?'rgba(253,248,245,0.96)':'transparent',backdropFilter:scrolled?'blur(8px)':'none',borderBottom:scrolled?`1px solid ${C.rule}`:'1px solid transparent',transition:'all 0.3s ease',padding:'0 clamp(20px,5vw,56px)',height:64,display:'flex',alignItems:'center',justifyContent:'space-between' }}>
+    <nav style={{ background:scrolled?'rgba(253,248,245,0.96)':'rgba(253,248,245,0.96)',backdropFilter:scrolled?'blur(8px)':'none',borderBottom:scrolled?`1px solid ${C.rule}`:'1px solid transparent',transition:'all 0.3s ease',padding:'0 clamp(20px,5vw,56px)',height:64,display:'flex',alignItems:'center',justifyContent:'space-between' }}>
       {/* Left links */}
       <div style={{ display:'flex',gap:28,alignItems:'center',flex:'0 0 140px' }} className="hide-mobile">
         {['Shop','About'].map(l=>(
@@ -554,24 +554,22 @@ function Nav({ cartCount, wishlistCount, onCartOpen, onWishlistOpen, setPage, us
 }
 
 /* ── Promo Banner ── */
-function PromoBanner() {
-  const [visible, setVisible] = useState(true);
-  if (!visible) return null;
+function PromoBanner({ onDismiss }) {
   return (
-    <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'10px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
+    <div style={{ background:C.crimson,color:'white',textAlign:'center',padding:'9px 24px',fontFamily:C.sans,fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',display:'flex',alignItems:'center',justifyContent:'center',gap:16,position:'relative' }}>
       <span>Cozy corners, fast deliveries — free shipping on orders over ₦75,000</span>
-      <button onClick={()=>setVisible(false)} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
+      <button onClick={onDismiss} style={{ position:'absolute',right:16,background:'none',border:'none',color:'rgba(255,255,255,0.6)',fontSize:16,cursor:'pointer',lineHeight:1,padding:'2px 6px' }}>×</button>
     </div>
   );
 }
 
 /* ── Hero ── */
-function Hero({ setPage }) {
+function Hero({ setPage, top=64 }) {
   const [visible, setVisible] = useState(false);
   useEffect(()=>{ const t=setTimeout(()=>setVisible(true),120); return ()=>clearTimeout(t); },[]);
   const words = ['Pieces','that outlast','the moment'];
   return (
-    <section style={{ minHeight:'100vh',background:C.bg,display:'flex',position:'relative',overflow:'hidden',paddingTop:64 }}>
+    <section style={{ minHeight:'100vh',background:C.bg,display:'flex',position:'relative',overflow:'hidden',paddingTop:top }}>
       {/* Left */}
       <div style={{ flex:'0 0 45%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'clamp(40px,8vw,88px) clamp(20px,5vw,56px)',gap:28,minWidth:0 }} className="mobile-full mobile-p">
         <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.32em',color:C.mid,textTransform:'uppercase',opacity:visible?1:0,transition:'opacity 0.5s 0.2s ease' }}>
@@ -622,7 +620,7 @@ function Hero({ setPage }) {
 }
 
 /* ── Shop Page ── */
-function Shop({ setPage, setSelectedProduct, cart, wishlist, products }) {
+function Shop({ setPage, setSelectedProduct, cart, wishlist, products, top=64 }) {
   const [filter, setFilter] = useState('All');
   const [addedId, setAddedId] = useState(null);
   const available = products.filter(p => !p.soldOut);
@@ -641,7 +639,7 @@ function Shop({ setPage, setSelectedProduct, cart, wishlist, products }) {
   };
 
   return (
-    <div style={{ paddingTop:64 }}>
+    <div style={{ paddingTop:top }}>
       <div style={{ padding:'48px clamp(20px,5vw,56px) 32px',background:C.bg2 }}>
         <h1 style={{ fontFamily:C.serif,fontSize:'clamp(28px,4vw,48px)',fontWeight:400,fontStyle:'italic',color:C.ink }}>Shop Everything</h1>
         <p style={{ fontFamily:C.sans,fontSize:10,color:C.mid,marginTop:8,letterSpacing:'0.1em' }}>{available.length} products</p>
@@ -752,7 +750,7 @@ function RecentlyPurchased({ setPage, setSelectedProduct, products }) {
 }
 
 /* ── Product Page ── */
-function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct, products }) {
+function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct, products, top=64 }) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);
@@ -765,7 +763,7 @@ function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct, pro
   };
 
   return (
-    <div style={{ paddingTop:64,minHeight:'100vh',background:C.white }}>
+    <div style={{ paddingTop:top,minHeight:'100vh',background:C.white }}>
       {/* Breadcrumb */}
       <div style={{ padding:'16px clamp(20px,5vw,56px)',borderBottom:`1px solid ${C.rule}`,display:'flex',gap:8,alignItems:'center' }}>
         {[{l:'Home',p:'home'},{l:'Shop',p:'shop'}].map((b,i)=>(
@@ -871,9 +869,9 @@ function ProductPage({ product, cart, wishlist, setPage, setSelectedProduct, pro
 }
 
 /* ── About Page ── */
-function About() {
+function About({ top=64 }) {
   return (
-    <div style={{ paddingTop:64 }}>
+    <div style={{ paddingTop:top }}>
       <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',minHeight:'60vh' }} className="mobile-grid-1">
         <div style={{ overflow:'hidden',minHeight:320 }}>
           <img src="uploads/IMG_8562.png" alt="brand" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
@@ -908,7 +906,7 @@ function About() {
 }
 
 /* ── Checkout ── */
-function Checkout({ cart, onBack, onComplete }) {
+function Checkout({ cart, onBack, onComplete, top=64 }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ first:'',last:'',email:'',phone:'',address:'',city:'',state:'',zip:'',country:'Nigeria',shipping:'',cardNum:'',expiry:'',cvv:'',name:'' });
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
@@ -958,7 +956,7 @@ function Checkout({ cart, onBack, onComplete }) {
   }
 
   return (
-    <div style={{ paddingTop:64,minHeight:'100vh',background:C.bg }}>
+    <div style={{ paddingTop:top,minHeight:'100vh',background:C.bg }}>
       {/* Progress */}
       <div style={{ padding:'24px clamp(20px,5vw,56px)',background:C.white,borderBottom:`1px solid ${C.rule}` }}>
         <button onClick={onBack} style={{ background:'none',border:'none',fontFamily:C.sans,fontSize:10,color:C.mid,letterSpacing:'0.12em',cursor:'pointer',marginBottom:16 }}>← Back to cart</button>
@@ -1177,6 +1175,8 @@ function App() {
   const [user, setUser]           = useState(getUserSession);
   const [products, setProducts]   = useState(loadProducts);
   const [selectedProduct, setSelectedProduct] = useState(()=>loadProducts()[0]);
+  const [bannerVisible, setBannerVisible] = useState(true);
+  const headerH = bannerVisible ? 106 : 64;
 
   const cart     = useCart(user?.id);
   const wishlist = useWishlist(user?.id);
@@ -1226,39 +1226,43 @@ function App() {
 
   if (checkout) return (
     <>
-      <Nav {...navProps} />
-      <Checkout cart={cart} onBack={()=>setCheckout(false)} onComplete={handleCheckoutComplete} />
+      <div style={{ position:'fixed',top:0,left:0,right:0,zIndex:900 }}>
+        <Nav {...navProps} />
+      </div>
+      <Checkout cart={cart} onBack={()=>setCheckout(false)} onComplete={handleCheckoutComplete} top={64} />
       <AuthModal open={authOpen} onClose={()=>setAuthOpen(false)} onLogin={handleUserLogin} />
     </>
   );
 
   return (
     <>
-      <PromoBanner />
-      <Nav {...navProps} />
+      <div style={{ position:'fixed',top:0,left:0,right:0,zIndex:900 }}>
+        {bannerVisible && <PromoBanner onDismiss={()=>setBannerVisible(false)} />}
+        <Nav {...navProps} />
+      </div>
       <CartDrawer open={cartOpen} onClose={()=>setCartOpen(false)} cart={cart} onCheckout={handleCheckout} />
       <WishlistDrawer open={wishlistOpen} onClose={()=>setWishlistOpen(false)} wishlist={wishlist} cart={cart} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
       <AuthModal open={authOpen} onClose={()=>setAuthOpen(false)} onLogin={handleUserLogin} />
 
       <main>
         {page==='home'&&<>
-          <Hero setPage={navigateTo} />
+          <Hero setPage={navigateTo} top={headerH} />
           <FeaturedSection products={products} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
           <RecentlyPurchased products={products} setPage={navigateTo} setSelectedProduct={setSelectedProduct} />
-          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} />
-          <About />
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} top={0} />
+          <About top={0} />
           <Footer setPage={navigateTo} />
         </>}
         {page==='shop'&&<>
-          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} />
+          <Shop setPage={navigateTo} setSelectedProduct={setSelectedProduct} cart={cart} wishlist={wishlist} products={products} top={headerH} />
           <Footer setPage={navigateTo} />
         </>}
         {page==='product'&&<>
-          <ProductPage product={selectedProduct} cart={cart} wishlist={wishlist} setPage={navigateTo} setSelectedProduct={setSelectedProduct} products={products} />
+          <ProductPage product={selectedProduct} cart={cart} wishlist={wishlist} setPage={navigateTo} setSelectedProduct={setSelectedProduct} products={products} top={headerH} />
           <Footer setPage={navigateTo} />
         </>}
         {page==='about'&&<>
-          <About />
+          <About top={headerH} />
           <Footer setPage={navigateTo} />
         </>}
       </main>

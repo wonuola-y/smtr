@@ -602,7 +602,7 @@ function ProductCard({ product, onEdit, onDelete, onToggle }) {
           {soldOut   && <span style={{ padding:'4px 10px', background:'#c04040', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Sold Out</span>}
           {featured  && <span style={{ padding:'4px 10px', background:'#d4822a', fontFamily:C.sans, fontSize:8, letterSpacing:'0.18em', color:'white', textTransform:'uppercase', display:'block' }}>Featured</span>}
         </div>
-        <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, opacity:hovering?1:0, transition:'opacity 0.18s', flexWrap:'wrap', padding:'0 12px' }}>
+        <div style={{ position:'absolute', inset:0, background:'rgba(168,17,17,0.88)', display:'flex', alignItems:'center', justifyContent:'center', gap:10, opacity:hovering?1:0, pointerEvents:hovering?'auto':'none', transition:'opacity 0.18s', flexWrap:'wrap', padding:'0 12px' }}>
           <button onClick={()=>onEdit(product)} style={{ padding:'8px 16px', background:'white', border:'none', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:C.ink, cursor:'pointer' }}>Edit</button>
           <button onClick={()=>onDelete(product.id)} style={{ padding:'8px 16px', background:'transparent', border:'1px solid rgba(255,255,255,0.5)', fontFamily:C.sans, fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:'white', cursor:'pointer' }}>Remove</button>
         </div>

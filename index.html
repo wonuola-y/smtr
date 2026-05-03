@@ -569,7 +569,8 @@ function Hero({ setPage, top=64 }) {
   useEffect(()=>{ const t=setTimeout(()=>setVisible(true),120); return ()=>clearTimeout(t); },[]);
   const words = ['Pieces','that outlast','the moment'];
   return (
-    <section style={{ minHeight:'100vh',background:C.bg,display:'flex',position:'relative',overflow:'hidden',paddingTop:top }}>
+    <section style={{ minHeight:'100vh',background:C.bg,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',paddingTop:top }}>
+      <div style={{ display:'flex',flex:1 }}>
       {/* Left */}
       <div style={{ flex:'0 0 45%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'clamp(40px,8vw,88px) clamp(20px,5vw,56px)',gap:28,minWidth:0 }} className="mobile-full mobile-p">
         <p style={{ fontFamily:C.sans,fontSize:9,letterSpacing:'0.32em',color:C.mid,textTransform:'uppercase',opacity:visible?1:0,transition:'opacity 0.5s 0.2s ease' }}>
@@ -603,7 +604,7 @@ function Hero({ setPage, top=64 }) {
         </div>
       </div>
 
-      {/* Right mosaic */}
+      {/* Right mosaic — desktop only */}
       <div style={{ flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:3,minHeight:560 }} className="hide-mobile">
         <div style={{ gridRow:'1/span 2',overflow:'hidden',opacity:visible?1:0,transition:'opacity 0.8s 0.3s ease' }}>
           <img src="uploads/IMG_8580.png" alt="donut ring vase" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',transform:visible?'scale(1)':'scale(1.05)',transition:'transform 0.9s 0.3s ease' }} />
@@ -613,6 +614,20 @@ function Hero({ setPage, top=64 }) {
         </div>
         <div style={{ overflow:'hidden',opacity:visible?1:0,transition:'opacity 0.8s 0.7s ease' }}>
           <img src="uploads/IMG_8468.png" alt="glass tumbler" style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center' }} />
+        </div>
+      </div>
+      </div>{/* end flex row */}
+
+      {/* Mobile hero image */}
+      <div className="show-mobile" style={{ width:'100%',height:320,overflow:'hidden',position:'relative',flexShrink:0,display:'none' }}>
+        <img
+          src="uploads/IMG_8580.png"
+          alt="Donut Ring Vase"
+          style={{ width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 30%',transform:visible?'scale(1)':'scale(1.08)',opacity:visible?1:0,transition:'transform 1.4s 0.2s ease, opacity 0.8s 0.1s ease' }}
+        />
+        <div style={{ position:'absolute',inset:0,background:'linear-gradient(to bottom, rgba(253,248,245,0.08) 40%, rgba(253,248,245,0.72) 100%)' }} />
+        <div style={{ position:'absolute',bottom:20,left:0,right:0,textAlign:'center' }}>
+          <p style={{ fontFamily:C.sans,fontSize:8,letterSpacing:'0.28em',textTransform:'uppercase',color:C.ink,opacity:0.6 }}>Donut Ring Vase · ₦52,000</p>
         </div>
       </div>
     </section>

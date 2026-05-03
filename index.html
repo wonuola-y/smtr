@@ -1175,9 +1175,7 @@ function App() {
   const [user, setUser]           = useState(getUserSession);
   const [products, setProducts]   = useState(loadProducts);
   const [selectedProduct, setSelectedProduct] = useState(()=>loadProducts()[0]);
-  const [bannerVisible, setBannerVisible] = useState(true);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-  const headerH = (bannerVisible && !isMobile) ? 106 : 64;
+  const headerH = 64;
 
   const cart     = useCart(user?.id);
   const wishlist = useWishlist(user?.id);
@@ -1238,7 +1236,6 @@ function App() {
   return (
     <>
       <div style={{ position:'fixed',top:0,left:0,right:0,zIndex:900 }}>
-        {bannerVisible && <PromoBanner onDismiss={()=>setBannerVisible(false)} />}
         <Nav {...navProps} />
       </div>
       <CartDrawer open={cartOpen} onClose={()=>setCartOpen(false)} cart={cart} onCheckout={handleCheckout} />

@@ -677,26 +677,34 @@ function ProductManager({ showToast }) {
     if (updated.id==='new') {
       const newId = Math.max(...products.map(p=>Number(p.id)), 0) + 1;
       const newProd = { ...updated, id:newId };
-      if (window.db) { await window.db.collection(FS_PRODS).doc(String(newId)).set(newProd); }
-      else lsSave([...products, newProd]);
+      if (window.db) {
+        try { await window.db.collection(FS_PRODS).doc(String(newId)).set(newProd); }
+        catch { lsSave([...products, newProd]); }
+      } else lsSave([...products, newProd]);
       showToast('Product added');
     } else {
-      if (window.db) { await window.db.collection(FS_PRODS).doc(String(updated.id)).set(updated); }
-      else lsSave(products.map(p=>p.id===updated.id?updated:p));
+      if (window.db) {
+        try { await window.db.collection(FS_PRODS).doc(String(updated.id)).set(updated); }
+        catch { lsSave(products.map(p=>p.id===updated.id?updated:p)); }
+      } else lsSave(products.map(p=>p.id===updated.id?updated:p));
       showToast('Changes saved');
     }
     setEditing(null);
   };
 
   const handleDelete = async id => {
-    if (window.db) { await window.db.collection(FS_PRODS).doc(String(id)).delete(); }
-    else lsSave(products.filter(p=>p.id!==id));
+    if (window.db) {
+      try { await window.db.collection(FS_PRODS).doc(String(id)).delete(); }
+      catch { lsSave(products.filter(p=>p.id!==id)); }
+    } else lsSave(products.filter(p=>p.id!==id));
     showToast('Product removed');
   };
 
   const handleToggle = async (id, field, value) => {
-    if (window.db) { await window.db.collection(FS_PRODS).doc(String(id)).update({[field]:value}); }
-    else lsSave(products.map(p=>p.id===id?{...p,[field]:value}:p));
+    if (window.db) {
+      try { await window.db.collection(FS_PRODS).doc(String(id)).update({[field]:value}); }
+      catch { lsSave(products.map(p=>p.id===id?{...p,[field]:value}:p)); }
+    } else lsSave(products.map(p=>p.id===id?{...p,[field]:value}:p));
     showToast(value?(field==='soldOut'?'Marked sold out':'Marked featured'):(field==='soldOut'?'Back in stock':'Removed from featured'));
   };
 

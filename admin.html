@@ -7,6 +7,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  // Firebase config — create a free project at console.firebase.google.com
+  window.FIREBASE_CONFIG = {
+    apiKey:            "REPLACE_WITH_API_KEY",
+    authDomain:        "REPLACE.firebaseapp.com",
+    projectId:         "REPLACE_PROJECT_ID",
+    storageBucket:     "REPLACE.appspot.com",
+    messagingSenderId: "REPLACE_SENDER_ID",
+    appId:             "REPLACE_APP_ID"
+  };
+  window.db = null;
+  if (window.FIREBASE_CONFIG.apiKey !== 'REPLACE_WITH_API_KEY') {
+    try { firebase.initializeApp(window.FIREBASE_CONFIG); window.db = firebase.firestore(); }
+    catch(e) { console.warn('Firebase init failed', e); }
+  }
+</script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -72,10 +90,35 @@ function getSession()     { try { return JSON.parse(sessionStorage.getItem(SESSI
 function saveSession(s)   { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch {} }
 function clearSession()   { try { sessionStorage.removeItem(SESSION_KEY); } catch {} }
 
+const FS_ADMINS = 'smtr_admins';
+
+async function getAdminsAll() {
+  if (window.db) {
+    try {
+      const snap = await window.db.collection(FS_ADMINS).get();
+      const list = snap.docs.map(d=>d.data());
+      if (list.length) { saveAdmins(list); return list; } // cache locally too
+    } catch {}
+  }
+  return getAdmins();
+}
+
+async function saveAdminToDB(admin) {
+  if (window.db) { try { await window.db.collection(FS_ADMINS).doc(admin.username).set(admin); } catch {} }
+  saveAdmins([...getAdmins().filter(a=>a.username!==admin.username), admin]);
+}
+
+async function deleteAdminFromDB(username) {
+  if (window.db) { try { await window.db.collection(FS_ADMINS).doc(username).delete(); } catch {} }
+  saveAdmins(getAdmins().filter(a=>a.username!==username));
+}
+
 async function seedIfEmpty() {
-  if (getAdmins().length > 0) return false;
+  const admins = await getAdminsAll();
+  if (admins.length > 0) return false;
   const hash = await hashPassword(DEFAULT_PW);
-  saveAdmins([{ username:'superadmin', passwordHash:hash, role:'superadmin', createdAt: new Date().toISOString().slice(0,10) }]);
+  const superAdmin = { username:'superadmin', passwordHash:hash, role:'superadmin', createdAt: new Date().toISOString().slice(0,10) };
+  await saveAdminToDB(superAdmin);
   return true;
 }
 
@@ -103,7 +146,7 @@ function LoginScreen({ onLogin }) {
     if (!username.trim() || !password) { setError('Please enter your username and password.'); return; }
     setLoading(true); setError('');
     try {
-      const admins = getAdmins();
+      const admins = await getAdminsAll();
       const admin  = admins.find(a => a.username.toLowerCase() === username.trim().toLowerCase());
       if (!admin) { setError('Invalid username or password.'); setLoading(false); return; }
       const hash = await hashPassword(password);
@@ -169,7 +212,7 @@ function LoginScreen({ onLogin }) {
 
 /* ── Team Manager (superadmin only) ── */
 function TeamManager({ currentUser, showToast }) {
-  const [admins, setAdmins]         = useState(getAdmins);
+  const [admins, setAdmins]         = useState([]);
   const [showAdd, setShowAdd]       = useState(false);
   const [showPwPanel, setShowPwPanel] = useState(false);
   const [newUser, setNewUser]       = useState({ username:'', password:'', confirm:'' });
@@ -178,7 +221,8 @@ function TeamManager({ currentUser, showToast }) {
   const [pwErr, setPwErr]           = useState('');
   const [showNewPw, setShowNewPw]   = useState(false);
 
-  const refresh = () => setAdmins(getAdmins());
+  const refresh = () => getAdminsAll().then(setAdmins);
+  useEffect(()=>{ refresh(); },[]);
 
   const handleAddAdmin = async e => {
     e.preventDefault(); setFormErr('');
@@ -189,15 +233,15 @@ function TeamManager({ currentUser, showToast }) {
     if (password.length < 6)                                                                { setFormErr('Password must be at least 6 characters.'); return; }
     if (password !== confirm)                                                               { setFormErr('Passwords do not match.'); return; }
     const hash = await hashPassword(password);
-    const updated = [...admins, { username: username.trim(), passwordHash: hash, role:'admin', createdAt: new Date().toISOString().slice(0,10), createdBy: currentUser.username }];
-    saveAdmins(updated); refresh();
+    const newAdmin = { username: username.trim(), passwordHash: hash, role:'admin', createdAt: new Date().toISOString().slice(0,10), createdBy: currentUser.username };
+    await saveAdminToDB(newAdmin); refresh();
     setShowAdd(false); setNewUser({ username:'', password:'', confirm:'' });
     showToast(`Admin "${username.trim()}" created`);
   };
 
-  const handleRemove = username => {
-    if (!confirm(`Remove admin "${username}"? This cannot be undone.`)) return;
-    saveAdmins(admins.filter(a => a.username !== username)); refresh();
+  const handleRemove = async username => {
+    if (!window.confirm(`Remove admin "${username}"? This cannot be undone.`)) return;
+    await deleteAdminFromDB(username); refresh();
     showToast(`Admin "${username}" removed`);
   };
 
@@ -210,7 +254,7 @@ function TeamManager({ currentUser, showToast }) {
     if (next.length < 6)   { setPwErr('New password must be at least 6 characters.'); return; }
     if (next !== confirm)  { setPwErr('New passwords do not match.'); return; }
     const newHash = await hashPassword(next);
-    saveAdmins(admins.map(a => a.username === currentUser.username ? { ...a, passwordHash: newHash } : a));
+    await saveAdminToDB({ ...me, passwordHash: newHash });
     refresh(); setShowPwPanel(false); setPwForm({ current:'', next:'', confirm:'' });
     showToast('Password updated');
   };
@@ -593,34 +637,68 @@ function ProductCard({ product, onEdit, onDelete, onToggle }) {
   );
 }
 
+/* ── Firestore product helpers ── */
+const FS_PRODS = 'smtr_products';
+function lsCache(prods) { try { localStorage.setItem(FS_PRODS, JSON.stringify(prods)); } catch {} }
+
 /* ── Product Manager ── */
 function ProductManager({ showToast }) {
   const [products, setProducts] = useState(()=>{
-    try { const s=localStorage.getItem('smtr_products'); return s?JSON.parse(s):INITIAL_PRODUCTS; } catch { return INITIAL_PRODUCTS; }
+    try { const s=localStorage.getItem(FS_PRODS); return s?JSON.parse(s):INITIAL_PRODUCTS; } catch { return INITIAL_PRODUCTS; }
   });
   const [editing, setEditing] = useState(null);
   const [filter, setFilter]   = useState('All');
   const [search, setSearch]   = useState('');
+  const [dbReady, setDbReady] = useState(false);
 
-  const save = prods => {
-    setProducts(prods);
-    try { localStorage.setItem('smtr_products', JSON.stringify(prods)); } catch {}
-  };
+  /* Subscribe to Firestore in real-time; fall back to localStorage */
+  useEffect(()=>{
+    if (!window.db) return;
+    const unsub = window.db.collection(FS_PRODS).onSnapshot(snap => {
+      if (snap.empty) {
+        /* First run — seed defaults */
+        INITIAL_PRODUCTS.forEach(p => window.db.collection(FS_PRODS).doc(String(p.id)).set(p));
+        setProducts(INITIAL_PRODUCTS);
+        lsCache(INITIAL_PRODUCTS);
+      } else {
+        const prods = snap.docs.map(d=>d.data()).sort((a,b)=>Number(a.id)-Number(b.id));
+        setProducts(prods);
+        lsCache(prods);
+      }
+      setDbReady(true);
+    }, ()=>setDbReady(false));
+    return ()=>unsub();
+  },[]);
 
-  const handleSave = updated => {
+  /* localStorage-only save (when no db) */
+  const lsSave = prods => { setProducts(prods); lsCache(prods); };
+
+  const handleSave = async updated => {
     if (updated.id==='new') {
-      const newId = Math.max(...products.map(p=>p.id), 0) + 1;
-      save([...products, { ...updated, id:newId }]);
+      const newId = Math.max(...products.map(p=>Number(p.id)), 0) + 1;
+      const newProd = { ...updated, id:newId };
+      if (window.db) { await window.db.collection(FS_PRODS).doc(String(newId)).set(newProd); }
+      else lsSave([...products, newProd]);
       showToast('Product added');
     } else {
-      save(products.map(p => p.id===updated.id ? updated : p));
+      if (window.db) { await window.db.collection(FS_PRODS).doc(String(updated.id)).set(updated); }
+      else lsSave(products.map(p=>p.id===updated.id?updated:p));
       showToast('Changes saved');
     }
     setEditing(null);
   };
 
-  const handleDelete = id => { save(products.filter(p=>p.id!==id)); showToast('Product removed'); };
-  const handleToggle = (id, field, value) => { save(products.map(p=>p.id===id?{...p,[field]:value}:p)); showToast(value?(field==='soldOut'?'Marked sold out':'Marked featured'):(field==='soldOut'?'Back in stock':'Removed from featured')); };
+  const handleDelete = async id => {
+    if (window.db) { await window.db.collection(FS_PRODS).doc(String(id)).delete(); }
+    else lsSave(products.filter(p=>p.id!==id));
+    showToast('Product removed');
+  };
+
+  const handleToggle = async (id, field, value) => {
+    if (window.db) { await window.db.collection(FS_PRODS).doc(String(id)).update({[field]:value}); }
+    else lsSave(products.map(p=>p.id===id?{...p,[field]:value}:p));
+    showToast(value?(field==='soldOut'?'Marked sold out':'Marked featured'):(field==='soldOut'?'Back in stock':'Removed from featured'));
+  };
 
   const filtered = products.filter(p => {
     const matchCat  = filter==='All' || p.category===filter;

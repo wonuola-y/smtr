@@ -10,6 +10,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Ovo&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  // Firebase config — create a free project at console.firebase.google.com
+  // then paste your config here. Leave as-is to use localStorage fallback.
+  window.FIREBASE_CONFIG = {
+    apiKey:            "REPLACE_WITH_API_KEY",
+    authDomain:        "REPLACE.firebaseapp.com",
+    projectId:         "REPLACE_PROJECT_ID",
+    storageBucket:     "REPLACE.appspot.com",
+    messagingSenderId: "REPLACE_SENDER_ID",
+    appId:             "REPLACE_APP_ID"
+  };
+  window.db = null;
+  if (window.FIREBASE_CONFIG.apiKey !== 'REPLACE_WITH_API_KEY') {
+    try { firebase.initializeApp(window.FIREBASE_CONFIG); window.db = firebase.firestore(); }
+    catch(e) { console.warn('Firebase init failed', e); }
+  }
+</script>
 <script>
   // EmailJS config — replace with your own credentials from emailjs.com
   window.EMAILJS_PUBLIC_KEY  = 'REPLACE_WITH_EMAILJS_PUBLIC_KEY';
@@ -141,12 +160,29 @@ async function hashUserPw(pw) {
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 const USERS_KEY    = 'smtr_users';
+const FS_USERS     = 'smtr_users';
 const USER_SESS_KEY = 'smtr_user_sess';
 function getUsers()       { try { return JSON.parse(localStorage.getItem(USERS_KEY))||[]; } catch { return []; } }
 function saveUsers(u)     { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch {} }
 function getUserSession()  { try { return JSON.parse(localStorage.getItem(USER_SESS_KEY))||null; } catch { return null; } }
 function saveUserSession(s){ try { localStorage.setItem(USER_SESS_KEY, JSON.stringify(s)); } catch {} }
 function clearUserSession(){ try { localStorage.removeItem(USER_SESS_KEY); } catch {} }
+
+async function findUserByEmail(email) {
+  const key = email.trim().toLowerCase();
+  if (window.db) {
+    try {
+      const snap = await window.db.collection(FS_USERS).where('email','==',key).limit(1).get();
+      if (!snap.empty) return snap.docs[0].data();
+    } catch {}
+  }
+  return getUsers().find(u=>u.email.toLowerCase()===key) || null;
+}
+
+async function saveUserToDB(user) {
+  if (window.db) { try { await window.db.collection(FS_USERS).doc(user.id).set(user); } catch {} }
+  saveUsers([...getUsers().filter(u=>u.id!==user.id), user]);
+}
 
 function cartKey(uid)     { return uid ? `smtr_cart_u${uid}` : 'smtr_cart'; }
 function wishlistKey(uid) { return uid ? `smtr_wishlist_u${uid}` : 'smtr_wishlist'; }
@@ -340,35 +376,38 @@ function AuthModal({ open, onClose, onLogin }) {
 
   const handleLogin = async e => {
     e.preventDefault(); setError(''); setLoading(true);
-    const users = getUsers();
-    const user = users.find(u=>u.email.toLowerCase()===form.email.trim().toLowerCase());
-    if (!user) { setError('No account found with that email.'); setLoading(false); return; }
-    const hash = await hashUserPw(form.password);
-    if (hash !== user.passwordHash) { setError('Incorrect password.'); setLoading(false); return; }
-    const sess = { id:user.id, email:user.email, name:user.name };
-    mergeGuestCart(sess.id);
-    saveUserSession(sess);
-    onLogin(sess);
-    onClose();
+    try {
+      const user = await findUserByEmail(form.email);
+      if (!user) { setError('No account found with that email.'); setLoading(false); return; }
+      const hash = await hashUserPw(form.password);
+      if (hash !== user.passwordHash) { setError('Incorrect password.'); setLoading(false); return; }
+      const sess = { id:user.id, email:user.email, name:user.name };
+      mergeGuestCart(sess.id);
+      saveUserSession(sess);
+      onLogin(sess);
+      onClose();
+    } catch { setError('Something went wrong. Please try again.'); }
     setLoading(false);
   };
 
   const handleRegister = async e => {
     e.preventDefault(); setError(''); setLoading(true);
-    if (!form.name.trim())                           { setError('Please enter your name.'); setLoading(false); return; }
-    if (!form.email.includes('@'))                   { setError('Please enter a valid email.'); setLoading(false); return; }
-    if (form.password.length < 6)                   { setError('Password must be at least 6 characters.'); setLoading(false); return; }
-    if (form.password !== form.confirm)              { setError('Passwords do not match.'); setLoading(false); return; }
-    const users = getUsers();
-    if (users.find(u=>u.email.toLowerCase()===form.email.trim().toLowerCase())) { setError('An account with that email already exists.'); setLoading(false); return; }
-    const hash = await hashUserPw(form.password);
-    const newUser = { id: Date.now().toString(), email:form.email.trim(), name:form.name.trim(), passwordHash:hash, createdAt:new Date().toISOString().slice(0,10) };
-    saveUsers([...users, newUser]);
-    const sess = { id:newUser.id, email:newUser.email, name:newUser.name };
-    mergeGuestCart(sess.id);
-    saveUserSession(sess);
-    onLogin(sess);
-    onClose();
+    try {
+      if (!form.name.trim())          { setError('Please enter your name.'); setLoading(false); return; }
+      if (!form.email.includes('@'))  { setError('Please enter a valid email.'); setLoading(false); return; }
+      if (form.password.length < 6)  { setError('Password must be at least 6 characters.'); setLoading(false); return; }
+      if (form.password !== form.confirm) { setError('Passwords do not match.'); setLoading(false); return; }
+      const existing = await findUserByEmail(form.email);
+      if (existing) { setError('An account with that email already exists.'); setLoading(false); return; }
+      const hash = await hashUserPw(form.password);
+      const newUser = { id:Date.now().toString(), email:form.email.trim().toLowerCase(), name:form.name.trim(), passwordHash:hash, createdAt:new Date().toISOString().slice(0,10) };
+      await saveUserToDB(newUser);
+      const sess = { id:newUser.id, email:newUser.email, name:newUser.name };
+      mergeGuestCart(sess.id);
+      saveUserSession(sess);
+      onLogin(sess);
+      onClose();
+    } catch { setError('Something went wrong. Please try again.'); }
     setLoading(false);
   };
 
@@ -1142,8 +1181,18 @@ function App() {
   const cart     = useCart(user?.id);
   const wishlist = useWishlist(user?.id);
 
-  /* Re-sync products when returning from admin */
+  /* Live product sync — Firestore when available, else localStorage on focus/storage */
   useEffect(()=>{
+    if (window.db) {
+      const unsub = window.db.collection('smtr_products').onSnapshot(snap => {
+        if (!snap.empty) {
+          const prods = snap.docs.map(d=>d.data()).sort((a,b)=>Number(a.id)-Number(b.id));
+          setProducts(prods);
+          try { localStorage.setItem('smtr_products', JSON.stringify(prods)); } catch {}
+        }
+      }, ()=>{});
+      return ()=>unsub();
+    }
     const sync = () => setProducts(loadProducts());
     window.addEventListener('focus', sync);
     window.addEventListener('storage', sync);

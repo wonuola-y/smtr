@@ -1136,8 +1136,22 @@ function Footer({ setPage }) {
           </div>
         </div>
         {[
-          ['Shop',    ['All Products','Ceramics','Glassware','Lighting','Vases','Mirrors','Travel','Accessories']],
-          ['Company', ['Our Story','Shipping & Returns','FAQ','Contact Us']],
+          ['Shop',    [
+            { label:'All Products', page:'shop' },
+            { label:'Ceramics',     page:'shop' },
+            { label:'Glassware',    page:'shop' },
+            { label:'Lighting',     page:'shop' },
+            { label:'Vases',        page:'shop' },
+            { label:'Mirrors',      page:'shop' },
+            { label:'Travel',       page:'shop' },
+            { label:'Accessories',  page:'shop' },
+          ]],
+          ['Company', [
+            { label:'Our Story',          page:'about' },
+            { label:'Shipping & Returns', page:'about' },
+            { label:'FAQ',                page:'about' },
+            { label:'Contact Us',         page:'about' },
+          ]],
           ['Follow',  [
             { label:'Instagram', href:'https://instagram.com/shop.morethanrubies' },
             { label:'TikTok',    href:'https://tiktok.com/@shop.morethanrubies' },
@@ -1149,17 +1163,15 @@ function Footer({ setPage }) {
             <p style={{ fontFamily:C.sans,fontSize:9,color:'rgba(255,255,255,0.35)',letterSpacing:'0.22em',textTransform:'uppercase',marginBottom:14 }}>{hd}</p>
             <div style={{ display:'flex',flexDirection:'column',gap:9 }}>
               {links.map(l=>{
-                const isObj = typeof l === 'object';
-                const label = isObj ? l.label : l;
-                const href  = isObj ? l.href : '#';
-                const isExt = href.startsWith('http');
+                const isExt = !!l.href;
                 return (
-                  <a key={label} href={href}
-                    onClick={e=>{ if(!isExt){ e.preventDefault(); if(hd==='Shop') setPage('shop'); } }}
+                  <a key={l.label}
+                    href={l.href || '#'}
+                    onClick={e=>{ if(!isExt){ e.preventDefault(); setPage(l.page); window.scrollTo(0,0); } }}
                     target={isExt ? '_blank' : undefined}
                     rel={isExt ? 'noopener noreferrer' : undefined}
-                    style={{ fontFamily:C.sans,fontSize:11,color:'rgba(255,255,255,0.48)',textDecoration:'none' }}
-                  >{label}</a>
+                    style={{ fontFamily:C.sans,fontSize:11,color:'rgba(255,255,255,0.48)',textDecoration:'none',cursor:'pointer' }}
+                  >{l.label}</a>
                 );
               })}
             </div>

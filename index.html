@@ -1131,7 +1131,7 @@ function Footer({ setPage }) {
   const handleSubscribe = () => {
     if (!subEmail.includes('@')) return;
     if (typeof emailjs !== 'undefined' && window.EMAILJS_SERVICE_ID !== 'REPLACE_WITH_SERVICE_ID' && window.EMAILJS_NEWSLETTER_TEMPLATE_ID) {
-      emailjs.send(window.EMAILJS_SERVICE_ID, window.EMAILJS_NEWSLETTER_TEMPLATE_ID, { subscriber_email: subEmail }).catch(()=>{});
+      emailjs.send(window.EMAILJS_SERVICE_ID, window.EMAILJS_NEWSLETTER_TEMPLATE_ID, { to_email: subEmail, subscriber_email: subEmail }).catch(()=>{});
     }
     setSubDone(true);
     setSubEmail('');

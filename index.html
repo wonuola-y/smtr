@@ -31,9 +31,10 @@
 </script>
 <script>
   // EmailJS config — replace with your own credentials from emailjs.com
-  window.EMAILJS_PUBLIC_KEY  = 'G0dUH1Aln_bCrz2ck';
-  window.EMAILJS_SERVICE_ID  = 'REPLACE_WITH_SERVICE_ID';
-  window.EMAILJS_TEMPLATE_ID = 'REPLACE_WITH_TEMPLATE_ID';
+  window.EMAILJS_PUBLIC_KEY            = 'G0dUH1Aln_bCrz2ck';
+  window.EMAILJS_SERVICE_ID            = 'REPLACE_WITH_SERVICE_ID';
+  window.EMAILJS_TEMPLATE_ID           = 'REPLACE_WITH_TEMPLATE_ID';
+  window.EMAILJS_NEWSLETTER_TEMPLATE_ID = 'REPLACE_WITH_NEWSLETTER_TEMPLATE_ID';
   document.addEventListener('DOMContentLoaded', function() {
     if (window.EMAILJS_PUBLIC_KEY !== 'REPLACE_WITH_EMAILJS_PUBLIC_KEY') {
       emailjs.init({ publicKey: window.EMAILJS_PUBLIC_KEY });
@@ -1124,16 +1125,33 @@ function Checkout({ cart, onBack, onComplete, top=64 }) {
 
 /* ── Footer ── */
 function Footer({ setPage }) {
+  const [subEmail, setSubEmail] = React.useState('');
+  const [subDone, setSubDone]   = React.useState(false);
+
+  const handleSubscribe = () => {
+    if (!subEmail.includes('@')) return;
+    if (typeof emailjs !== 'undefined' && window.EMAILJS_SERVICE_ID !== 'REPLACE_WITH_SERVICE_ID' && window.EMAILJS_NEWSLETTER_TEMPLATE_ID) {
+      emailjs.send(window.EMAILJS_SERVICE_ID, window.EMAILJS_NEWSLETTER_TEMPLATE_ID, { subscriber_email: subEmail }).catch(()=>{});
+    }
+    setSubDone(true);
+    setSubEmail('');
+  };
+
   return (
     <footer style={{ background:C.ink,padding:'56px clamp(20px,5vw,56px) 40px' }}>
       <div style={{ display:'grid',gridTemplateColumns:'1.5fr 1fr 1fr 1fr',gap:32 }} className="mobile-grid-2">
         <div style={{ display:'flex',flexDirection:'column',gap:16 }}>
           <p style={{ fontFamily:C.serif,fontSize:20,color:C.white,fontStyle:'italic' }}>Shopmorethanrubies</p>
           <p style={{ fontFamily:C.body,fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.9,maxWidth:220 }}>Intentionally chosen objects for homes that feel like you.</p>
-          <div style={{ display:'flex' }}>
-            <input placeholder="Your email" style={{ flex:1,padding:'9px 12px',background:'rgba(255,255,255,0.07)',border:`1px solid rgba(255,255,255,0.12)`,color:C.white,fontFamily:C.sans,fontSize:10,outline:'none',minWidth:0 }} />
-            <button style={{ padding:'9px 16px',background:C.crimson,border:'none',color:C.white,fontSize:12,cursor:'pointer',transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.background=C.red} onMouseLeave={e=>e.currentTarget.style.background=C.crimson}>→</button>
-          </div>
+          <a href="mailto:morethanrubieshop@gmail.com" style={{ fontFamily:C.sans,fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:'0.08em',textDecoration:'none' }}>morethanrubieshop@gmail.com</a>
+          {subDone ? (
+            <p style={{ fontFamily:C.sans,fontSize:10,color:C.crimson,letterSpacing:'0.1em' }}>You're on the list ✓</p>
+          ) : (
+            <div style={{ display:'flex' }}>
+              <input value={subEmail} onChange={e=>setSubEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSubscribe()} placeholder="Your email" style={{ flex:1,padding:'9px 12px',background:'rgba(255,255,255,0.07)',border:`1px solid rgba(255,255,255,0.12)`,color:C.white,fontFamily:C.sans,fontSize:10,outline:'none',minWidth:0 }} />
+              <button onClick={handleSubscribe} style={{ padding:'9px 16px',background:C.crimson,border:'none',color:C.white,fontSize:12,cursor:'pointer',transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.background=C.red} onMouseLeave={e=>e.currentTarget.style.background=C.crimson}>→</button>
+            </div>
+          )}
         </div>
         {[
           ['Shop',    [
